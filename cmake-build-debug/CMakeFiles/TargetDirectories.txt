@@ -1,0 +1,3 @@
+/home/marko/Documents/Projects/SS/cmake-build-debug/CMakeFiles/SS.dir
+/home/marko/Documents/Projects/SS/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/marko/Documents/Projects/SS/cmake-build-debug/CMakeFiles/rebuild_cache.dir
