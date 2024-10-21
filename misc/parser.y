@@ -48,23 +48,24 @@ enum valtype {
 
 std::vector<std::string> symblist;
 std::vector<std::pair<std::string, valtype>> vallist;
+std::vector<unsigned short> reglist;
 %}
 
 %union {
     const char *str;
 }
 
-%token<str> dotGLOBAL dotSECTION dotWORD dotSKIP dotASCII dotEQU dotEND
+%token<str> dotGLOBAL dotSECTION dotWORD dotSKIP dotASCII dotEQU dotEND dotTYPE dotWEAK
 %token<str> HALT INTERRUPT INTERRUPT_RETURN CALL RETURN JUMP BRANCH_EQUAL BRANCH_notEQUAL BRANCH_GREATER PUSH POP EXCHANGE ADD SUBTRACT MULTIPLY DIVIDE NOT AND OR XOR SHIFT_LEFT SHIFT_RIGHT LOAD STORE CSRRD CSRWR
 %token<str> NEWLINE COMMENT STRING SYMBOL INTEGER REGISTER SYSTEM_REGISTER
-%token<str> PLUS MINUS STAR SLASH COLON DOLLAR LBRACKET RBRACKET COMMA
+%token<str> PLUS MINUS STAR SLASH COLON DOLLAR LBRACKET LCBRACKET RBRACKET RCBRACKET COMMA GRGR LSLS
 %token<str> CATCH_ERROR
 
 
 %%
 line: label | instruction | label instruction | directive | label directive | terminate;
 instruction: halt | int | call | jmp | beq | bne | bgt | xchg | add | sub | mul | div | not | and | or | xor | shl | shr | push | st | pop | ld | ret | iret | csrrd | csrwr;
-directive: global | section | word | skip | ascii | equ | end;
+directive: global | section | word | skip | ascii | equ | end | type | weak;
 terminate: COMMENT |;
 
 symblist: SYMBOL {
@@ -82,6 +83,12 @@ vallist: SYMBOL {
   } | INTEGER COMMA vallist {
     vallist.push_back({$1, valtype::INT});
   }
+
+reglist: REGISTER {
+    reglist.push_back(regs[$1]);
+} | REGISTER COMMA reglist {
+    reglist.push_back(regs[$1]);
+}
 
 
 label: SYMBOL COLON terminate {
@@ -126,6 +133,16 @@ equ: dotEQU SYMBOL COMMA COMMA terminate {
 
 end: dotEND terminate {
     YYABORT;
+};
+
+type: dotTYPE SYMBOL COMMA SYMBOL terminate {
+    SymTab::add_type($2, $4);
+};
+
+weak: dotWEAK symblist terminate {
+    for (auto& symb : symblist)
+        SymTab::weaks.insert(symb);
+    symblist.clear();
 };
 
 
@@ -180,6 +197,10 @@ xchg: EXCHANGE REGISTER COMMA REGISTER terminate {
 
 add: ADD REGISTER COMMA REGISTER terminate {
     section->add_instruction(0b0101, 0b0000, regs[$4], regs[$4], regs[$2]);
+} | ADD REGISTER COMMA REGISTER GRGR INTEGER {
+
+} | ADD REGISTER COMMA REGISTER LSLS INTEGER {
+
 }
 sub: SUBTRACT REGISTER COMMA REGISTER terminate {
     section->add_instruction(0b0101, 0b0001, regs[$4], regs[$4], regs[$2]);
@@ -213,6 +234,11 @@ shr: SHIFT_RIGHT REGISTER COMMA REGISTER terminate {
 
 push: PUSH REGISTER terminate {
     section->add_instruction(0b1000, 0b0001, 14, 0, regs[$2], -4);
+} | PUSH LCBRACKET reglist RCBRACKET terminate {
+    for (auto it = reglist.rbegin(); it != reglist.rend(); ++it) {
+        section->add_instruction(0b1000, 0b0001, 14, 0, *it, -4);
+    }
+    reglist.clear();
 }
 
 pop: POP REGISTER terminate {
@@ -234,6 +260,8 @@ st: STORE REGISTER COMMA INTEGER terminate {
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS SYMBOL RBRACKET terminate {
     section->add_literal($7);
     section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2]);
+} | STORE REGISTER COMMA LBRACKET REGISTER PLUS REGISTER RBRACKET terminate {
+    section->add_instruction(0b1000, 0b0000, regs[$5], regs[$7], regs[$2]);
 }
 
 ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
@@ -259,6 +287,8 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
 } | LOAD LBRACKET REGISTER PLUS SYMBOL RBRACKET COMMA REGISTER terminate {
     SymTab::add_occurrence($5, section->getName(), section->getSize(), false);
     section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3]);
+} | LOAD LBRACKET REGISTER PLUS REGISTER RBRACKET COMMA REGISTER terminate {
+    section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3], regs[$5]);
 }
 
 ret: RETURN terminate {

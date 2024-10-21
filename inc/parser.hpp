@@ -61,49 +61,53 @@ extern int yydebug;
     dotASCII = 262,                /* dotASCII  */
     dotEQU = 263,                  /* dotEQU  */
     dotEND = 264,                  /* dotEND  */
-    HALT = 265,                    /* HALT  */
-    INTERRUPT = 266,               /* INTERRUPT  */
-    INTERRUPT_RETURN = 267,        /* INTERRUPT_RETURN  */
-    CALL = 268,                    /* CALL  */
-    RETURN = 269,                  /* RETURN  */
-    JUMP = 270,                    /* JUMP  */
-    BRANCH_EQUAL = 271,            /* BRANCH_EQUAL  */
-    BRANCH_notEQUAL = 272,         /* BRANCH_notEQUAL  */
-    BRANCH_GREATER = 273,          /* BRANCH_GREATER  */
-    PUSH = 274,                    /* PUSH  */
-    POP = 275,                     /* POP  */
-    EXCHANGE = 276,                /* EXCHANGE  */
-    ADD = 277,                     /* ADD  */
-    SUBTRACT = 278,                /* SUBTRACT  */
-    MULTIPLY = 279,                /* MULTIPLY  */
-    DIVIDE = 280,                  /* DIVIDE  */
-    NOT = 281,                     /* NOT  */
-    AND = 282,                     /* AND  */
-    OR = 283,                      /* OR  */
-    XOR = 284,                     /* XOR  */
-    SHIFT_LEFT = 285,              /* SHIFT_LEFT  */
-    SHIFT_RIGHT = 286,             /* SHIFT_RIGHT  */
-    LOAD = 287,                    /* LOAD  */
-    STORE = 288,                   /* STORE  */
-    CSRRD = 289,                   /* CSRRD  */
-    CSRWR = 290,                   /* CSRWR  */
-    NEWLINE = 291,                 /* NEWLINE  */
-    COMMENT = 292,                 /* COMMENT  */
-    STRING = 293,                  /* STRING  */
-    SYMBOL = 294,                  /* SYMBOL  */
-    INTEGER = 295,                 /* INTEGER  */
-    REGISTER = 296,                /* REGISTER  */
-    SYSTEM_REGISTER = 297,         /* SYSTEM_REGISTER  */
-    PLUS = 298,                    /* PLUS  */
-    MINUS = 299,                   /* MINUS  */
-    STAR = 300,                    /* STAR  */
-    SLASH = 301,                   /* SLASH  */
-    COLON = 302,                   /* COLON  */
-    DOLLAR = 303,                  /* DOLLAR  */
-    LBRACKET = 304,                /* LBRACKET  */
-    RBRACKET = 305,                /* RBRACKET  */
-    COMMA = 306,                   /* COMMA  */
-    CATCH_ERROR = 307              /* CATCH_ERROR  */
+    dotTYPE = 265,                 /* dotTYPE  */
+    dotWEAK = 266,                 /* dotWEAK  */
+    HALT = 267,                    /* HALT  */
+    INTERRUPT = 268,               /* INTERRUPT  */
+    INTERRUPT_RETURN = 269,        /* INTERRUPT_RETURN  */
+    CALL = 270,                    /* CALL  */
+    RETURN = 271,                  /* RETURN  */
+    JUMP = 272,                    /* JUMP  */
+    BRANCH_EQUAL = 273,            /* BRANCH_EQUAL  */
+    BRANCH_notEQUAL = 274,         /* BRANCH_notEQUAL  */
+    BRANCH_GREATER = 275,          /* BRANCH_GREATER  */
+    PUSH = 276,                    /* PUSH  */
+    POP = 277,                     /* POP  */
+    EXCHANGE = 278,                /* EXCHANGE  */
+    ADD = 279,                     /* ADD  */
+    SUBTRACT = 280,                /* SUBTRACT  */
+    MULTIPLY = 281,                /* MULTIPLY  */
+    DIVIDE = 282,                  /* DIVIDE  */
+    NOT = 283,                     /* NOT  */
+    AND = 284,                     /* AND  */
+    OR = 285,                      /* OR  */
+    XOR = 286,                     /* XOR  */
+    SHIFT_LEFT = 287,              /* SHIFT_LEFT  */
+    SHIFT_RIGHT = 288,             /* SHIFT_RIGHT  */
+    LOAD = 289,                    /* LOAD  */
+    STORE = 290,                   /* STORE  */
+    CSRRD = 291,                   /* CSRRD  */
+    CSRWR = 292,                   /* CSRWR  */
+    NEWLINE = 293,                 /* NEWLINE  */
+    COMMENT = 294,                 /* COMMENT  */
+    STRING = 295,                  /* STRING  */
+    SYMBOL = 296,                  /* SYMBOL  */
+    INTEGER = 297,                 /* INTEGER  */
+    REGISTER = 298,                /* REGISTER  */
+    SYSTEM_REGISTER = 299,         /* SYSTEM_REGISTER  */
+    PLUS = 300,                    /* PLUS  */
+    MINUS = 301,                   /* MINUS  */
+    STAR = 302,                    /* STAR  */
+    SLASH = 303,                   /* SLASH  */
+    COLON = 304,                   /* COLON  */
+    DOLLAR = 305,                  /* DOLLAR  */
+    LBRACKET = 306,                /* LBRACKET  */
+    LCBRACKET = 307,               /* LCBRACKET  */
+    RBRACKET = 308,                /* RBRACKET  */
+    RCBRACKET = 309,               /* RCBRACKET  */
+    COMMA = 310,                   /* COMMA  */
+    CATCH_ERROR = 311              /* CATCH_ERROR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -112,11 +116,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 53 "misc/parser.y"
+#line 54 "misc/parser.y"
 
     const char *str;
 
-#line 120 "inc/parser.hpp"
+#line 124 "inc/parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -28,6 +28,8 @@ operator "+"|"-"|"*"|"/"
 ".ascii" { yylval.str = strdup(yytext); return dotASCII; }
 ".equ" { yylval.str = strdup(yytext); return dotEQU; }
 ".end" { yylval.str = strdup(yytext); return dotEND; }
+".type" { yylval.str = strdup(yytext); return dotTYPE; }
+".weak" { yylval.str = strdup(yytext); return dotWEAK; }
 
 
 "halt" { yylval.str = strdup(yytext); return HALT; }
@@ -75,6 +77,10 @@ operator "+"|"-"|"*"|"/"
 "[" { yylval.str = strdup(yytext); return LBRACKET; }
 "]" { yylval.str = strdup(yytext); return RBRACKET; }
 "," { yylval.str = strdup(yytext); return COMMA; }
+"{" { yylval.str = strdup(yytext); return LCBRACKET; }
+"}" { yylval.str = strdup(yytext); return RCBRACKET; }
+"<<" { yylval.str = strdup(yytext); return LSLS; }
+">>" { yylval.str = strdup(yytext); return GRGR; }
 
 [ \t]+ {}
 
