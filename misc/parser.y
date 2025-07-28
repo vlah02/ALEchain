@@ -63,11 +63,7 @@ std::vector<unsigned short> reglist;
 
 
 %%
-program:
-      /* empty */
-    | program line
-    | program NEWLINE
-    ;
+program: | program line | program NEWLINE ;
 line: label | instruction | label instruction | directive | label directive | terminate;
 instruction: halt | int | call | jmp | beq | bne | bgt | xchg | add | sub | mul | div | not | and | or | xor | shl | shr | push | st | pop | ld | ret | iret | csrrd | csrwr;
 directive: global | section | word | skip | ascii | equ | end | type | weak;
