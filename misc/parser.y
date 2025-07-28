@@ -124,7 +124,13 @@ skip: dotSKIP INTEGER terminate {
 };
 
 ascii: dotASCII STRING terminate {
-
+    std::string raw($2);
+    if (!raw.empty() && raw.front() == '"' && raw.back() == '"') {
+        raw = raw.substr(1, raw.size() - 2);
+    }
+    for (char c : raw) {
+        section->insertByte(static_cast<unsigned char>(c));
+    }
 };
 
 equ: dotEQU SYMBOL COMMA COMMA terminate {

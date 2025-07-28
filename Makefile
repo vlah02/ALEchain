@@ -10,3 +10,6 @@ lexer:
 
 clean:
 	rm -f inc/lexer.hpp inc/parser.hpp src/lexer.cpp src/parser.cpp
+
+asmtest: clean assembler
+	 ./assembler -o tests/output.s tests/input.s

@@ -8,9 +8,22 @@
 #include "../inc/assembler_section.hpp"
 #include "../inc/assembler_symtab.hpp"
 
-int main() {
+int main(int argc, char **argv) {
+    std::string inputName;
+    std::string outputName;
+    if (argc == 2) {
+        inputName = argv[1];
+        outputName = argv[1];
+        outputName[outputName.size() - 1] = 'o';
+    } else if (argc == 4 && std::string(argv[1]) == "-o") {
+        inputName = argv[3];
+        outputName = argv[2];
+    } else {
+        return -2;
+    }
+
     std::ifstream input;
-    input.open("tests/input.s");
+    input.open(inputName);
     if (!input) {
         std::cerr << "Unable to open file " << std::endl;
         return -1;
@@ -23,11 +36,12 @@ int main() {
         if(yyparse() == 1) break;;
     }
 
+    std::ofstream output;
+    output.open(outputName);
+
     Section::dumpPool();
-
-    Section::out(std::cout);
-
-    SymTab::out(std::cout);
+    Section::out(output);
+    SymTab::out(output);
 
     return 0;
 }
