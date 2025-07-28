@@ -1,9 +1,11 @@
-.extern kurac
-int
-picka:
-ld kurac, %r1
-st %r1, picka
-st %r1, picka
-st %r1, picka
-st %r1, kurac
-st %r1, picka
+.section txt
+start:
+    halt
+    int
+    call label1
+    jmp label2
+    beq %r1, %r2, label1
+label1:
+    ret
+label2:
+    not %r3

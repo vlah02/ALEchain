@@ -63,10 +63,15 @@ std::vector<unsigned short> reglist;
 
 
 %%
+program:
+      /* empty */
+    | program line
+    | program NEWLINE
+    ;
 line: label | instruction | label instruction | directive | label directive | terminate;
 instruction: halt | int | call | jmp | beq | bne | bgt | xchg | add | sub | mul | div | not | and | or | xor | shl | shr | push | st | pop | ld | ret | iret | csrrd | csrwr;
 directive: global | section | word | skip | ascii | equ | end | type | weak;
-terminate: COMMENT |;
+terminate: NEWLINE | COMMENT | ;
 
 symblist: SYMBOL {
     symblist.push_back($1);
@@ -317,7 +322,7 @@ csrwr: CSRWR SYSTEM_REGISTER COMMA REGISTER terminate {
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "ERROR\n");
+    fprintf(stderr, "ERROR (token=%d, text=%s)\n", yychar, yytext);
 }
 
 long toInt(const std::string &str) {

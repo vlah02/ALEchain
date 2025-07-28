@@ -62,7 +62,7 @@ operator "+"|"-"|"*"|"/"
 
 [\n] { yylval.str = strdup(yytext); return NEWLINE; }
 "#"(.)* { yylval.str = strdup(yytext); return COMMENT; }
-"\""({alphanum}|[ ])+"\"" { yylval.str = strdup(yytext); return STRING; }
+\"([^\"]*)\"   { yylval.str = strdup(yytext); return STRING; }
 {letter}({alphanum})* { yylval.str = strdup(yytext); return SYMBOL; }
 "-"?{decimal}|{hexa}|{octal}|{binary} { yylval.str = strdup(yytext); return INTEGER; }
 "%"(("r"{digit}[0-5]?)|"pc"|"sp") { yylval.str = strdup(yytext); return REGISTER; }

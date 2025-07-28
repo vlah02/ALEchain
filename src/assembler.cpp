@@ -28,13 +28,10 @@ int main(int argc, char **argv) {
         std::cerr << "Unable to open file " << std::endl;
         return -1;
     }
-
-    for(int i = 0; !input.eof(); i++) {
-        std::string line;
-        getline(input, line);
-        yy_scan_string(line.c_str());
-        if(yyparse() == 1) break;;
-    }
+    std::stringstream buffer;
+    buffer << input.rdbuf();
+    yy_scan_string(buffer.str().c_str());
+    yyparse();
 
     std::ofstream output;
     output.open(outputName);
