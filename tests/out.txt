@@ -1,0 +1,9 @@
+rm -f inc/lexer.hpp inc/parser.hpp src/lexer.cpp src/parser.cpp
+flex --header-file=inc/lexer.hpp -o src/lexer.cpp misc/lexer.l
+bison -d -o src/parser.cpp --defines=inc/parser.hpp misc/parser.y
+misc/parser.y: warning: 190 shift/reduce conflicts [-Wconflicts-sr]
+misc/parser.y: warning: 39 reduce/reduce conflicts [-Wconflicts-rr]
+misc/parser.y: note: rerun with option '-Wcounterexamples' to generate conflict counterexamples
+sed -i 's/#include "parser.hpp"/#include "..\/inc\/parser.hpp"/' src/parser.cpp
+g++ -o assembler src/assembler.cpp src/assembler_section.cpp src/assembler_symtab.cpp src/lexer.cpp src/parser.cpp
+./assembler -o tests/output.s tests/input.s

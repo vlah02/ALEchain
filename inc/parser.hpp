@@ -94,22 +94,23 @@ extern int yydebug;
     STRING = 295,                  /* STRING  */
     SYMBOL = 296,                  /* SYMBOL  */
     INTEGER = 297,                 /* INTEGER  */
-    REGISTER = 298,                /* REGISTER  */
-    SYSTEM_REGISTER = 299,         /* SYSTEM_REGISTER  */
-    PLUS = 300,                    /* PLUS  */
-    MINUS = 301,                   /* MINUS  */
-    STAR = 302,                    /* STAR  */
-    SLASH = 303,                   /* SLASH  */
-    COLON = 304,                   /* COLON  */
-    DOLLAR = 305,                  /* DOLLAR  */
-    LBRACKET = 306,                /* LBRACKET  */
-    LCBRACKET = 307,               /* LCBRACKET  */
-    RBRACKET = 308,                /* RBRACKET  */
-    RCBRACKET = 309,               /* RCBRACKET  */
-    COMMA = 310,                   /* COMMA  */
-    GRGR = 311,                    /* GRGR  */
-    LSLS = 312,                    /* LSLS  */
-    CATCH_ERROR = 313              /* CATCH_ERROR  */
+    MINUS_INTEGER = 298,           /* MINUS_INTEGER  */
+    REGISTER = 299,                /* REGISTER  */
+    SYSTEM_REGISTER = 300,         /* SYSTEM_REGISTER  */
+    PLUS = 301,                    /* PLUS  */
+    MINUS = 302,                   /* MINUS  */
+    STAR = 303,                    /* STAR  */
+    SLASH = 304,                   /* SLASH  */
+    COLON = 305,                   /* COLON  */
+    DOLLAR = 306,                  /* DOLLAR  */
+    LBRACKET = 307,                /* LBRACKET  */
+    LCBRACKET = 308,               /* LCBRACKET  */
+    RBRACKET = 309,                /* RBRACKET  */
+    RCBRACKET = 310,               /* RCBRACKET  */
+    COMMA = 311,                   /* COMMA  */
+    GRGR = 312,                    /* GRGR  */
+    LSLS = 313,                    /* LSLS  */
+    CATCH_ERROR = 314              /* CATCH_ERROR  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -122,7 +123,7 @@ union YYSTYPE
 
     const char *str;
 
-#line 126 "inc/parser.hpp"
+#line 127 "inc/parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

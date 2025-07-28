@@ -64,7 +64,11 @@ operator "+"|"-"|"*"|"/"
 "#"(.)* { yylval.str = strdup(yytext); return COMMENT; }
 \"([^\"]*)\"   { yylval.str = strdup(yytext); return STRING; }
 {letter}({alphanum})* { yylval.str = strdup(yytext); return SYMBOL; }
-"-"?{decimal}|{hexa}|{octal}|{binary} { yylval.str = strdup(yytext); return INTEGER; }
+"-"{decimal}      { yylval.str = strdup(yytext); return MINUS_INTEGER; }
+{decimal}         { yylval.str = strdup(yytext); return INTEGER; }
+{hexa}            { yylval.str = strdup(yytext); return INTEGER; }
+{octal}           { yylval.str = strdup(yytext); return INTEGER; }
+{binary}          { yylval.str = strdup(yytext); return INTEGER; }
 "%"(("r"{digit}[0-5]?)|"pc"|"sp") { yylval.str = strdup(yytext); return REGISTER; }
 "%"("status"|"handler"|"cause") { yylval.str = strdup(yytext); return SYSTEM_REGISTER; }
 

@@ -57,7 +57,7 @@ std::vector<unsigned short> reglist;
 
 %token<str> dotGLOBAL dotSECTION dotWORD dotSKIP dotASCII dotEQU dotEND dotTYPE dotWEAK
 %token<str> HALT INTERRUPT INTERRUPT_RETURN CALL RETURN JUMP BRANCH_EQUAL BRANCH_notEQUAL BRANCH_GREATER PUSH POP EXCHANGE ADD SUBTRACT MULTIPLY DIVIDE NOT AND OR XOR SHIFT_LEFT SHIFT_RIGHT LOAD STORE CSRRD CSRWR
-%token<str> NEWLINE COMMENT STRING SYMBOL INTEGER REGISTER SYSTEM_REGISTER
+%token<str> NEWLINE COMMENT STRING SYMBOL INTEGER MINUS_INTEGER REGISTER SYSTEM_REGISTER
 %token<str> PLUS MINUS STAR SLASH COLON DOLLAR LBRACKET LCBRACKET RBRACKET RCBRACKET COMMA GRGR LSLS
 %token<str> CATCH_ERROR
 
@@ -75,15 +75,20 @@ symblist: SYMBOL {
     symblist.push_back($1);
 };
 
-vallist: SYMBOL {
-    vallist.push_back({$1, valtype::SYM});
- } | SYMBOL COMMA vallist {
-    vallist.push_back({$1, valtype::SYM});
-  } | INTEGER {
-    vallist.push_back({$1, valtype::INT});
-  } | INTEGER COMMA vallist {
-    vallist.push_back({$1, valtype::INT});
-  }
+vallist:
+      SYMBOL { vallist.push_back({$1, valtype::SYM}); }
+    | INTEGER { vallist.push_back({$1, valtype::INT}); }
+    | SYMBOL PLUS INTEGER { vallist.push_back({std::string($1) + "+" + std::string($3), valtype::SYM}); }
+    | SYMBOL MINUS INTEGER { vallist.push_back({std::string($1) + "-" + std::string($3), valtype::SYM}); }
+    | SYMBOL MINUS_INTEGER { vallist.push_back({std::string($1) + std::string($2), valtype::SYM}); }
+    | MINUS_INTEGER { vallist.push_back({$1, valtype::INT}); }
+    | vallist COMMA SYMBOL { vallist.push_back({$3, valtype::SYM}); }
+    | vallist COMMA INTEGER { vallist.push_back({$3, valtype::INT}); }
+    | vallist COMMA SYMBOL PLUS INTEGER { vallist.push_back({std::string($3) + "+" + std::string($5), valtype::SYM}); }
+    | vallist COMMA SYMBOL MINUS INTEGER { vallist.push_back({std::string($3) + "-" + std::string($5), valtype::SYM}); }
+    | vallist COMMA SYMBOL MINUS_INTEGER { vallist.push_back({std::string($3) + std::string($4), valtype::SYM}); }
+    | vallist COMMA MINUS_INTEGER { vallist.push_back({$3, valtype::INT}); }
+;
 
 reglist: REGISTER {
     reglist.push_back(regs[$1]);
@@ -111,8 +116,20 @@ word: dotWORD vallist terminate {
         if (it->second == valtype::INT) {
             section->insertInt(toInt(it->first));
         } else if (it->second == valtype::SYM) {
+            std::string name = it->first;
+            int addend = 0;
+            auto plus = name.find('+');
+            auto minus = name.find('-');
+            if (plus != std::string::npos) {
+                addend = std::stoi(name.substr(plus + 1));
+                name = name.substr(0, plus);
+            } else if (minus != std::string::npos) {
+                addend = -std::stoi(name.substr(minus + 1));
+                name = name.substr(0, minus);
+            }
+            section->add_literal(name, addend);
             section->insertInt(-1);
-            SymTab::add_occurrence(it->first, section->getName(), section->getSize());
+            SymTab::add_occurrence(name, section->getName(), section->getSize());
         }
     }
     vallist.clear();
@@ -173,6 +190,12 @@ jmp: JUMP SYMBOL terminate {
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP INTEGER terminate {
     section->add_literal(toInt($2));
+    section->add_instruction(0b0011, 0b1000, 15);
+} | JUMP SYMBOL PLUS INTEGER terminate {
+    section->add_literal(std::string($2) + "+" + std::string($4));
+    section->add_instruction(0b0011, 0b1000, 15);
+} | JUMP SYMBOL MINUS INTEGER terminate {
+    section->add_literal(std::string($2) + "-" + std::string($4));
     section->add_instruction(0b0011, 0b1000, 15);
 }
 
@@ -318,7 +341,7 @@ csrwr: CSRWR SYSTEM_REGISTER COMMA REGISTER terminate {
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "ERROR (token=%d, text=%s)\n", yychar, yytext);
+    fprintf(stderr, "ERROR (token=%d, text=%s) (last symbol='%s')\n", yychar, yytext, yylval.str);
 }
 
 long toInt(const std::string &str) {

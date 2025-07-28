@@ -39,6 +39,7 @@ int main(int argc, char **argv) {
     Section::dumpPool();
     Section::out(output);
     SymTab::out(output);
+    Section::outRelocations(output);
 
     return 0;
 }
