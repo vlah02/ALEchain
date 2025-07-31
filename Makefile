@@ -1,3 +1,6 @@
+linker:
+	g++ -o linker src/linker.cpp src/linker_section.cpp src/linker_symtab.cpp
+
 assembler: parser
 	g++ -o assembler src/assembler.cpp src/assembler_section.cpp src/assembler_symtab.cpp src/lexer.cpp src/parser.cpp
 

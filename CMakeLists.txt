@@ -9,4 +9,9 @@ add_executable(SS
         src/assembler_symtab.cpp
         inc/assembler_symtab.hpp
         src/assembler.cpp
-        inc/linker_section.hpp)
+        inc/linker_section.hpp
+        inc/linker_section.hpp
+        src/linker_section.cpp
+        inc/linker_symtab.hpp
+        src/linker_symtab.cpp
+        src/linker.cpp)
