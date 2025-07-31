@@ -191,68 +191,67 @@ enum yysymbol_kind_t
   YYSYMBOL_STRING = 40,                    /* STRING  */
   YYSYMBOL_SYMBOL = 41,                    /* SYMBOL  */
   YYSYMBOL_INTEGER = 42,                   /* INTEGER  */
-  YYSYMBOL_MINUS_INTEGER = 43,             /* MINUS_INTEGER  */
-  YYSYMBOL_REGISTER = 44,                  /* REGISTER  */
-  YYSYMBOL_SYSTEM_REGISTER = 45,           /* SYSTEM_REGISTER  */
-  YYSYMBOL_PLUS = 46,                      /* PLUS  */
-  YYSYMBOL_MINUS = 47,                     /* MINUS  */
-  YYSYMBOL_STAR = 48,                      /* STAR  */
-  YYSYMBOL_SLASH = 49,                     /* SLASH  */
-  YYSYMBOL_COLON = 50,                     /* COLON  */
-  YYSYMBOL_DOLLAR = 51,                    /* DOLLAR  */
-  YYSYMBOL_LBRACKET = 52,                  /* LBRACKET  */
-  YYSYMBOL_LCBRACKET = 53,                 /* LCBRACKET  */
-  YYSYMBOL_RBRACKET = 54,                  /* RBRACKET  */
-  YYSYMBOL_RCBRACKET = 55,                 /* RCBRACKET  */
-  YYSYMBOL_COMMA = 56,                     /* COMMA  */
-  YYSYMBOL_GRGR = 57,                      /* GRGR  */
-  YYSYMBOL_LSLS = 58,                      /* LSLS  */
-  YYSYMBOL_CATCH_ERROR = 59,               /* CATCH_ERROR  */
-  YYSYMBOL_YYACCEPT = 60,                  /* $accept  */
-  YYSYMBOL_program = 61,                   /* program  */
-  YYSYMBOL_line = 62,                      /* line  */
-  YYSYMBOL_instruction = 63,               /* instruction  */
-  YYSYMBOL_directive = 64,                 /* directive  */
-  YYSYMBOL_terminate = 65,                 /* terminate  */
-  YYSYMBOL_symblist = 66,                  /* symblist  */
-  YYSYMBOL_vallist = 67,                   /* vallist  */
-  YYSYMBOL_reglist = 68,                   /* reglist  */
-  YYSYMBOL_label = 69,                     /* label  */
-  YYSYMBOL_global = 70,                    /* global  */
-  YYSYMBOL_section = 71,                   /* section  */
-  YYSYMBOL_word = 72,                      /* word  */
-  YYSYMBOL_skip = 73,                      /* skip  */
-  YYSYMBOL_ascii = 74,                     /* ascii  */
-  YYSYMBOL_equ = 75,                       /* equ  */
-  YYSYMBOL_end = 76,                       /* end  */
-  YYSYMBOL_type = 77,                      /* type  */
-  YYSYMBOL_weak = 78,                      /* weak  */
-  YYSYMBOL_halt = 79,                      /* halt  */
-  YYSYMBOL_int = 80,                       /* int  */
-  YYSYMBOL_call = 81,                      /* call  */
-  YYSYMBOL_jmp = 82,                       /* jmp  */
-  YYSYMBOL_beq = 83,                       /* beq  */
-  YYSYMBOL_bne = 84,                       /* bne  */
-  YYSYMBOL_bgt = 85,                       /* bgt  */
-  YYSYMBOL_xchg = 86,                      /* xchg  */
-  YYSYMBOL_add = 87,                       /* add  */
-  YYSYMBOL_sub = 88,                       /* sub  */
-  YYSYMBOL_mul = 89,                       /* mul  */
-  YYSYMBOL_div = 90,                       /* div  */
-  YYSYMBOL_not = 91,                       /* not  */
-  YYSYMBOL_and = 92,                       /* and  */
-  YYSYMBOL_or = 93,                        /* or  */
-  YYSYMBOL_xor = 94,                       /* xor  */
-  YYSYMBOL_shl = 95,                       /* shl  */
-  YYSYMBOL_shr = 96,                       /* shr  */
-  YYSYMBOL_push = 97,                      /* push  */
-  YYSYMBOL_pop = 98,                       /* pop  */
-  YYSYMBOL_st = 99,                        /* st  */
-  YYSYMBOL_ld = 100,                       /* ld  */
-  YYSYMBOL_ret = 101,                      /* ret  */
-  YYSYMBOL_iret = 102,                     /* iret  */
-  YYSYMBOL_csrrd = 103,                    /* csrrd  */
-  YYSYMBOL_csrwr = 104                     /* csrwr  */
+  YYSYMBOL_REGISTER = 43,                  /* REGISTER  */
+  YYSYMBOL_SYSTEM_REGISTER = 44,           /* SYSTEM_REGISTER  */
+  YYSYMBOL_PLUS = 45,                      /* PLUS  */
+  YYSYMBOL_MINUS = 46,                     /* MINUS  */
+  YYSYMBOL_STAR = 47,                      /* STAR  */
+  YYSYMBOL_SLASH = 48,                     /* SLASH  */
+  YYSYMBOL_COLON = 49,                     /* COLON  */
+  YYSYMBOL_DOLLAR = 50,                    /* DOLLAR  */
+  YYSYMBOL_LBRACKET = 51,                  /* LBRACKET  */
+  YYSYMBOL_LCBRACKET = 52,                 /* LCBRACKET  */
+  YYSYMBOL_RBRACKET = 53,                  /* RBRACKET  */
+  YYSYMBOL_RCBRACKET = 54,                 /* RCBRACKET  */
+  YYSYMBOL_COMMA = 55,                     /* COMMA  */
+  YYSYMBOL_GRGR = 56,                      /* GRGR  */
+  YYSYMBOL_LSLS = 57,                      /* LSLS  */
+  YYSYMBOL_CATCH_ERROR = 58,               /* CATCH_ERROR  */
+  YYSYMBOL_YYACCEPT = 59,                  /* $accept  */
+  YYSYMBOL_program = 60,                   /* program  */
+  YYSYMBOL_line = 61,                      /* line  */
+  YYSYMBOL_instruction = 62,               /* instruction  */
+  YYSYMBOL_directive = 63,                 /* directive  */
+  YYSYMBOL_terminate = 64,                 /* terminate  */
+  YYSYMBOL_symblist = 65,                  /* symblist  */
+  YYSYMBOL_vallist = 66,                   /* vallist  */
+  YYSYMBOL_reglist = 67,                   /* reglist  */
+  YYSYMBOL_label = 68,                     /* label  */
+  YYSYMBOL_global = 69,                    /* global  */
+  YYSYMBOL_section = 70,                   /* section  */
+  YYSYMBOL_word = 71,                      /* word  */
+  YYSYMBOL_skip = 72,                      /* skip  */
+  YYSYMBOL_ascii = 73,                     /* ascii  */
+  YYSYMBOL_equ = 74,                       /* equ  */
+  YYSYMBOL_end = 75,                       /* end  */
+  YYSYMBOL_type = 76,                      /* type  */
+  YYSYMBOL_weak = 77,                      /* weak  */
+  YYSYMBOL_halt = 78,                      /* halt  */
+  YYSYMBOL_int = 79,                       /* int  */
+  YYSYMBOL_call = 80,                      /* call  */
+  YYSYMBOL_jmp = 81,                       /* jmp  */
+  YYSYMBOL_beq = 82,                       /* beq  */
+  YYSYMBOL_bne = 83,                       /* bne  */
+  YYSYMBOL_bgt = 84,                       /* bgt  */
+  YYSYMBOL_xchg = 85,                      /* xchg  */
+  YYSYMBOL_add = 86,                       /* add  */
+  YYSYMBOL_sub = 87,                       /* sub  */
+  YYSYMBOL_mul = 88,                       /* mul  */
+  YYSYMBOL_div = 89,                       /* div  */
+  YYSYMBOL_not = 90,                       /* not  */
+  YYSYMBOL_and = 91,                       /* and  */
+  YYSYMBOL_or = 92,                        /* or  */
+  YYSYMBOL_xor = 93,                       /* xor  */
+  YYSYMBOL_shl = 94,                       /* shl  */
+  YYSYMBOL_shr = 95,                       /* shr  */
+  YYSYMBOL_push = 96,                      /* push  */
+  YYSYMBOL_pop = 97,                       /* pop  */
+  YYSYMBOL_st = 98,                        /* st  */
+  YYSYMBOL_ld = 99,                        /* ld  */
+  YYSYMBOL_ret = 100,                      /* ret  */
+  YYSYMBOL_iret = 101,                     /* iret  */
+  YYSYMBOL_csrrd = 102,                    /* csrrd  */
+  YYSYMBOL_csrwr = 103                     /* csrwr  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -583,16 +582,16 @@ union yyalloc
 #define YYLAST   295
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  60
+#define YYNTOKENS  59
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  45
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  124
+#define YYNRULES  122
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  299
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   314
+#define YYMAXUTOK   313
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -637,7 +636,7 @@ static const yytype_int8 yytranslate[] =
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
       35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
       45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
-      55,    56,    57,    58,    59
+      55,    56,    57,    58
 };
 
 #if YYDEBUG
@@ -649,14 +648,14 @@ static const yytype_int16 yyrline[] =
       68,    68,    68,    68,    68,    68,    68,    68,    68,    68,
       68,    68,    68,    68,    68,    68,    68,    69,    69,    69,
       69,    69,    69,    69,    69,    69,    70,    70,    70,    72,
-      74,    79,    80,    81,    82,    83,    84,    85,    86,    87,
-      88,    89,    90,    93,    95,   100,   104,   110,   114,   138,
-     144,   154,   158,   162,   166,   173,   177,   181,   184,   188,
-     191,   194,   197,   202,   205,   209,   212,   216,   219,   224,
-     228,   230,   232,   235,   238,   241,   245,   248,   251,   254,
-     258,   261,   265,   267,   274,   278,   281,   284,   286,   288,
-     290,   293,   297,   300,   303,   307,   311,   313,   315,   317,
-     320,   324,   328,   334,   337
+      74,    79,    81,    83,    88,    93,    98,   100,   102,   107,
+     112,   119,   121,   126,   130,   136,   140,   164,   170,   180,
+     184,   188,   192,   199,   203,   207,   210,   214,   217,   220,
+     223,   228,   231,   235,   238,   242,   245,   250,   254,   256,
+     258,   261,   264,   267,   271,   274,   277,   280,   284,   287,
+     291,   293,   300,   304,   307,   310,   312,   314,   316,   319,
+     323,   326,   329,   333,   337,   339,   341,   343,   346,   350,
+     354,   360,   363
 };
 #endif
 
@@ -679,15 +678,14 @@ static const char *const yytname[] =
   "PUSH", "POP", "EXCHANGE", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE",
   "NOT", "AND", "OR", "XOR", "SHIFT_LEFT", "SHIFT_RIGHT", "LOAD", "STORE",
   "CSRRD", "CSRWR", "NEWLINE", "COMMENT", "STRING", "SYMBOL", "INTEGER",
-  "MINUS_INTEGER", "REGISTER", "SYSTEM_REGISTER", "PLUS", "MINUS", "STAR",
-  "SLASH", "COLON", "DOLLAR", "LBRACKET", "LCBRACKET", "RBRACKET",
-  "RCBRACKET", "COMMA", "GRGR", "LSLS", "CATCH_ERROR", "$accept",
-  "program", "line", "instruction", "directive", "terminate", "symblist",
-  "vallist", "reglist", "label", "global", "section", "word", "skip",
-  "ascii", "equ", "end", "type", "weak", "halt", "int", "call", "jmp",
-  "beq", "bne", "bgt", "xchg", "add", "sub", "mul", "div", "not", "and",
-  "or", "xor", "shl", "shr", "push", "pop", "st", "ld", "ret", "iret",
-  "csrrd", "csrwr", YY_NULLPTR
+  "REGISTER", "SYSTEM_REGISTER", "PLUS", "MINUS", "STAR", "SLASH", "COLON",
+  "DOLLAR", "LBRACKET", "LCBRACKET", "RBRACKET", "RCBRACKET", "COMMA",
+  "GRGR", "LSLS", "CATCH_ERROR", "$accept", "program", "line",
+  "instruction", "directive", "terminate", "symblist", "vallist",
+  "reglist", "label", "global", "section", "word", "skip", "ascii", "equ",
+  "end", "type", "weak", "halt", "int", "call", "jmp", "beq", "bne", "bgt",
+  "xchg", "add", "sub", "mul", "div", "not", "and", "or", "xor", "shl",
+  "shr", "push", "pop", "st", "ld", "ret", "iret", "csrrd", "csrwr", YY_NULLPTR
 };
 
 static const char *
@@ -711,36 +709,36 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-     -40,     6,   -40,   -39,   -33,    45,     8,    21,    36,    33,
-      59,   -39,    33,    33,    33,    40,    33,    73,    52,    65,
-      74,     2,    76,   121,   122,   123,   124,   125,   126,   127,
-     128,   129,   130,   135,    12,   136,   137,   152,   -40,   -40,
-     113,   -40,   -40,   -40,   -40,   119,   -40,   -40,   -40,   -40,
+     -40,     6,   -40,   -39,   -33,    45,     4,    16,     9,    32,
+      36,   -39,    32,    32,    32,    68,    32,    70,    39,    51,
+      55,    29,    61,    77,   123,   124,   125,   126,   127,   128,
+     129,   130,   131,   136,    12,   137,    44,   138,   -40,   -40,
+      64,   -40,   -40,   -40,   -40,   119,   -40,   -40,   -40,   -40,
      -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,
      -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,
      -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,
-     -40,   108,    33,    33,    48,   -40,   -40,    13,    33,    33,
-     142,   -40,   -40,   143,    33,   -40,   -40,   -40,    33,    33,
-     -40,    19,    33,   144,   148,   151,    33,   164,    33,   153,
-     154,   155,   156,   157,    33,   158,   159,   160,   161,   162,
-     163,   165,   166,    75,   176,   167,   168,   169,    33,   -40,
-     -40,   -39,   -40,   -40,   -40,   139,   184,    70,   -40,   -40,
-     -40,   171,   187,   -40,   -40,   -40,   188,   189,   -40,   -40,
-     185,   192,   193,   -40,   177,   183,   -40,   195,   196,   197,
-     198,   199,   -40,   200,   201,   202,   203,   210,   211,   212,
-     213,   204,   206,    29,    18,   214,   215,   -40,   -40,   -40,
-     -40,    55,   -40,   -40,    33,    33,    33,    33,   208,   209,
-     216,   164,    33,    33,    10,    33,    33,    33,    33,    33,
-      33,    33,    33,    33,    33,    33,   222,   223,    62,   217,
-      33,    33,    33,   224,    33,    33,   -40,   190,   227,   -40,
-     -40,   -40,   -40,   116,   118,   120,   -40,   -40,   -40,   228,
-     229,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,
-     -40,   -40,   -40,    33,    33,   220,   221,   230,   232,   -40,
-     -40,   -40,    30,   -40,   -40,   -40,   -40,    33,    33,    33,
-      33,    33,    33,   -40,   -40,   -40,   -40,   231,   233,   234,
-      33,    66,    33,   -40,   -40,   -40,   -40,   -40,   -40,   241,
-     242,   244,   -40,   237,   238,   239,   -40,    33,    33,    33,
-      33,    33,    33,   -40,   -40,   -40,   -40,   -40,   -40
+     -40,    63,    32,    32,    69,   -40,   140,    13,    32,    32,
+     110,   -40,   -40,   142,    32,   -40,   -40,   -40,    32,    32,
+     -40,    19,    32,   143,   144,   145,    32,   161,    32,   152,
+     153,   154,   155,   156,    32,   157,   158,   159,   160,   162,
+     163,   164,   165,    75,   173,   166,   167,   168,    32,   -40,
+     -40,   -39,   -40,   -40,   182,   183,   -40,    54,   -40,   -40,
+     -40,   171,   186,   -40,   -40,   -40,   187,   188,   -40,   -40,
+     185,   189,   190,   -40,   176,   184,   -40,   193,   194,   196,
+     197,   198,   -40,   199,   200,   201,   202,   203,   204,   211,
+     212,   205,   207,    30,    18,   213,   214,   -40,   -40,   -40,
+     -40,   112,   -40,   215,    32,    32,    32,    32,   209,   210,
+     216,   161,    32,    32,    10,    32,    32,    32,    32,    32,
+      32,    32,    32,    32,    32,    32,   223,   224,    60,   217,
+      32,    32,    32,   225,    32,    32,   227,   228,   -40,   -40,
+     -40,   -40,   -40,   118,   120,   122,   -40,   -40,   -40,   231,
+     232,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,
+     -40,   -40,   -40,    32,    32,   206,   222,   233,   234,   -40,
+     -40,   -40,    31,   -40,   -40,   -40,   -40,    32,    32,    32,
+      32,    32,    32,   -40,   -40,   -40,   -40,   221,   229,   230,
+      32,    65,    32,   -40,   -40,   -40,   -40,   -40,   -40,   244,
+     245,   246,   -40,   237,   238,   239,   -40,    32,    32,    32,
+      32,    32,    32,   -40,   -40,   -40,   -40,   -40,   -40
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -756,34 +754,34 @@ static const yytype_int8 yydefact[] =
       41,    42,    43,    44,    45,    11,    12,    13,    14,    15,
       16,    17,    18,    19,    20,    21,    22,    23,    24,    25,
       26,    27,    28,    29,    31,    30,    32,    33,    34,    35,
-      36,    49,    48,    48,    51,    52,    56,    48,    48,    48,
-       0,    46,    72,     0,    48,    75,    76,   122,    48,    48,
-     121,    48,    48,     0,     0,     0,    48,     0,    48,     0,
+      36,    49,    48,    48,    51,    52,     0,    48,    48,    48,
+       0,    46,    70,     0,    48,    73,    74,   120,    48,    48,
+     119,    48,    48,     0,     0,     0,    48,     0,    48,     0,
        0,     0,     0,     0,    48,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,    48,     7,
-       9,     0,    66,    67,    55,     0,     0,     0,    68,    69,
-      70,     0,     0,    74,    77,    78,     0,     0,    79,    80,
-       0,     0,     0,   102,    63,     0,   104,     0,     0,     0,
-       0,     0,    96,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,    65,    50,    53,
-      54,    57,    58,    62,    48,    48,    48,    48,     0,     0,
+       9,     0,    64,    65,     0,     0,    53,     0,    66,    67,
+      68,     0,     0,    72,    75,    76,     0,     0,    77,    78,
+       0,     0,     0,   100,    61,     0,   102,     0,     0,     0,
+       0,     0,    94,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,    63,    50,    54,
+      55,    56,    57,     0,    48,    48,    48,    48,     0,     0,
        0,     0,    48,    48,    48,    48,    48,    48,    48,    48,
       48,    48,    48,    48,    48,    48,     0,     0,     0,     0,
-      48,    48,    48,     0,    48,    48,    61,     0,     0,    71,
-      73,    81,    82,     0,     0,     0,    64,   103,    89,     0,
-       0,    90,    93,    94,    95,    97,    98,    99,   100,   101,
-     115,   114,   116,    48,    48,     0,     0,     0,     0,   106,
-     105,   107,     0,   123,   124,    59,    60,    48,    48,    48,
-      48,    48,    48,    91,    92,   113,   112,     0,     0,     0,
-      48,     0,    48,    83,    84,    85,    86,    87,    88,     0,
-       0,     0,   117,     0,     0,     0,   108,    48,    48,    48,
-      48,    48,    48,   119,   118,   120,   110,   109,   111
+      48,    48,    48,     0,    48,    48,     0,     0,    58,    69,
+      71,    79,    80,     0,     0,     0,    62,   101,    87,     0,
+       0,    88,    91,    92,    93,    95,    96,    97,    98,    99,
+     113,   112,   114,    48,    48,     0,     0,     0,     0,   104,
+     103,   105,     0,   121,   122,    59,    60,    48,    48,    48,
+      48,    48,    48,    89,    90,   111,   110,     0,     0,     0,
+      48,     0,    48,    81,    82,    83,    84,    85,    86,     0,
+       0,     0,   115,     0,     0,     0,   106,    48,    48,    48,
+      48,    48,    48,   117,   116,   118,   108,   107,   109
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-     -40,   -40,   -40,   249,   250,    -9,   -10,   -40,    86,   -40,
+     -40,   -40,   -40,   248,   249,    -9,   -10,   -40,   104,   -40,
      -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,
      -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,
      -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,   -40,
@@ -809,32 +807,32 @@ static const yytype_int16 yytable[] =
        4,     5,     6,     7,     8,     9,    10,    11,    12,    13,
       14,    15,    16,    17,    18,    19,    20,    21,    22,    23,
       24,    25,    26,    27,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,   106,    40,    91,    39,
-      88,    91,    39,   120,   121,   107,   122,    91,    39,   210,
-     211,    89,   212,   123,   124,   146,   147,   229,   230,   137,
-     213,    91,    39,   132,   133,   208,   271,    90,   138,   139,
-     140,    98,    99,   209,   272,   143,    84,    85,    86,   144,
-     145,   134,   148,   149,   135,   136,   103,   153,   216,   156,
-      93,   217,   218,   245,   246,   162,   247,   283,   284,   104,
-     285,   181,   182,   183,   101,   102,   171,   172,   105,   177,
-     108,   178,     3,     4,     5,     6,     7,     8,     9,    10,
+      34,    35,    36,    37,    38,    39,    88,    40,    91,    39,
+      90,    91,    39,   120,   121,   122,    89,    91,    39,   210,
+     211,   212,   123,   124,   146,   147,   229,   230,   137,   213,
+      91,    39,   106,   132,   133,   208,   271,    93,   138,   139,
+     140,   107,   103,   209,   272,   143,    84,    85,   126,   144,
+     145,    86,   148,   149,   104,   181,   182,   153,   105,   156,
+     183,   245,   246,   247,   108,   162,   283,   284,   285,    98,
+      99,   101,   102,   128,   134,   135,   171,   172,   131,   177,
+     109,   178,     3,     4,     5,     6,     7,     8,     9,    10,
       11,    12,    13,    14,    15,    16,    17,    18,    19,    20,
       21,    22,    23,    24,    25,    26,    27,    28,    29,    30,
-      31,    32,    33,    34,    35,    36,    37,   257,   258,   259,
-     260,   261,   262,   128,   131,   109,   110,   111,   112,   113,
+      31,    32,    33,    34,    35,    36,    37,   216,   217,   257,
+     258,   259,   260,   261,   262,   141,   110,   111,   112,   113,
      114,   115,   116,   117,   118,   219,   220,   221,   222,   119,
-     125,   179,   126,   227,   228,   231,   232,   233,   234,   235,
-     236,   237,   238,   239,   240,   241,   242,   127,   141,   142,
-     150,   249,   250,   251,   151,   253,   254,   152,   154,   157,
-     158,   159,   160,   161,   163,   164,   165,   166,   167,   168,
-     173,   169,   170,   174,   175,   176,   180,   184,   185,   188,
-     186,   187,   255,   191,   265,   266,   189,   190,   192,   193,
-     194,   195,   196,   197,   198,   199,   200,   201,   273,   274,
-     275,   276,   277,   278,   202,   203,   204,   205,   214,   215,
-     206,   282,   207,   286,   223,   224,   243,   244,   252,   256,
-     263,   264,   225,   248,   267,   268,   270,   226,   293,   294,
-     295,   296,   297,   298,   269,   287,   288,   279,   289,   280,
-     281,   290,   291,   292,   129,   130
+     125,   127,   136,   227,   228,   231,   232,   233,   234,   235,
+     236,   237,   238,   239,   240,   241,   242,   142,   150,   151,
+     152,   249,   250,   251,   154,   253,   254,   157,   158,   159,
+     160,   161,   163,   164,   165,   166,   173,   167,   168,   169,
+     170,   174,   175,   176,   179,   180,   184,   185,   188,   186,
+     187,   191,   189,   190,   265,   266,   193,   194,   192,   195,
+     196,   197,   198,   199,   200,   201,   202,   203,   273,   274,
+     275,   276,   277,   278,   204,   205,   214,   218,   215,   267,
+     206,   282,   207,   286,   223,   224,   243,   244,   252,   255,
+     256,   225,   248,   263,   264,   268,   279,   270,   293,   294,
+     295,   296,   297,   298,   280,   281,   269,   287,   288,   289,
+     290,   291,   292,   129,   130,   226
 };
 
 static const yytype_int16 yycheck[] =
@@ -843,86 +841,86 @@ static const yytype_int16 yycheck[] =
        4,     5,     6,     7,     8,     9,    10,    11,    12,    13,
       14,    15,    16,    17,    18,    19,    20,    21,    22,    23,
       24,    25,    26,    27,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    44,    41,    38,    39,
-      42,    38,    39,    41,    42,    53,    44,    38,    39,    41,
-      42,    40,    44,    51,    52,    46,    47,    57,    58,    56,
-      52,    38,    39,    82,    83,    46,    46,    41,    87,    88,
-      89,    41,    42,    54,    54,    94,    41,    42,    43,    98,
-      99,    43,   101,   102,    46,    47,    44,   106,    43,   108,
-      41,    46,    47,    41,    42,   114,    44,    41,    42,    44,
-      44,    41,    42,    43,    41,    42,    41,    42,    44,   128,
-      44,   131,     3,     4,     5,     6,     7,     8,     9,    10,
+      34,    35,    36,    37,    38,    39,    42,    41,    38,    39,
+      41,    38,    39,    41,    42,    43,    40,    38,    39,    41,
+      42,    43,    50,    51,    45,    46,    56,    57,    55,    51,
+      38,    39,    43,    82,    83,    45,    45,    41,    87,    88,
+      89,    52,    43,    53,    53,    94,    41,    42,    44,    98,
+      99,    46,   101,   102,    43,    41,    42,   106,    43,   108,
+      46,    41,    42,    43,    43,   114,    41,    42,    43,    41,
+      42,    41,    42,    49,    45,    46,    41,    42,    55,   128,
+      43,   131,     3,     4,     5,     6,     7,     8,     9,    10,
       11,    12,    13,    14,    15,    16,    17,    18,    19,    20,
       21,    22,    23,    24,    25,    26,    27,    28,    29,    30,
-      31,    32,    33,    34,    35,    36,    37,    41,    42,    41,
-      42,    41,    42,    50,    56,    44,    44,    44,    44,    44,
-      44,    44,    44,    44,    44,   184,   185,   186,   187,    44,
-      44,    42,    45,   192,   193,   194,   195,   196,   197,   198,
-     199,   200,   201,   202,   203,   204,   205,    45,    56,    56,
-      56,   210,   211,   212,    56,   214,   215,    56,    44,    56,
-      56,    56,    56,    56,    56,    56,    56,    56,    56,    56,
-      44,    56,    56,    56,    56,    56,    42,    56,    41,    44,
-      42,    42,    42,    56,   243,   244,    44,    44,    55,    44,
-      44,    44,    44,    44,    44,    44,    44,    44,   257,   258,
-     259,   260,   261,   262,    44,    44,    44,    44,    44,    44,
-      56,   270,    56,   272,    56,    56,    44,    44,    44,    42,
-      42,    42,    56,    56,    54,    54,    44,   191,   287,   288,
-     289,   290,   291,   292,    54,    44,    44,    56,    44,    56,
-      56,    54,    54,    54,    45,    45
+      31,    32,    33,    34,    35,    36,    37,    45,    46,    41,
+      42,    41,    42,    41,    42,    55,    43,    43,    43,    43,
+      43,    43,    43,    43,    43,   184,   185,   186,   187,    43,
+      43,    43,    42,   192,   193,   194,   195,   196,   197,   198,
+     199,   200,   201,   202,   203,   204,   205,    55,    55,    55,
+      55,   210,   211,   212,    43,   214,   215,    55,    55,    55,
+      55,    55,    55,    55,    55,    55,    43,    55,    55,    55,
+      55,    55,    55,    55,    42,    42,    55,    41,    43,    42,
+      42,    55,    43,    43,   243,   244,    43,    43,    54,    43,
+      43,    43,    43,    43,    43,    43,    43,    43,   257,   258,
+     259,   260,   261,   262,    43,    43,    43,    42,    44,    53,
+      55,   270,    55,   272,    55,    55,    43,    43,    43,    42,
+      42,    55,    55,    42,    42,    53,    55,    43,   287,   288,
+     289,   290,   291,   292,    55,    55,    53,    43,    43,    43,
+      53,    53,    53,    45,    45,   191
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    61,     0,     3,     4,     5,     6,     7,     8,     9,
+       0,    60,     0,     3,     4,     5,     6,     7,     8,     9,
       10,    11,    12,    13,    14,    15,    16,    17,    18,    19,
       20,    21,    22,    23,    24,    25,    26,    27,    28,    29,
       30,    31,    32,    33,    34,    35,    36,    37,    38,    39,
-      41,    62,    63,    64,    65,    69,    70,    71,    72,    73,
-      74,    75,    76,    77,    78,    79,    80,    81,    82,    83,
-      84,    85,    86,    87,    88,    89,    90,    91,    92,    93,
-      94,    95,    96,    97,    98,    99,   100,   101,   102,   103,
-     104,    41,    66,    41,    41,    42,    43,    67,    42,    40,
-      41,    38,    65,    41,    66,    65,    65,    65,    41,    42,
-      65,    41,    42,    44,    44,    44,    44,    53,    44,    44,
-      44,    44,    44,    44,    44,    44,    44,    44,    44,    44,
-      41,    42,    44,    51,    52,    44,    45,    45,    50,    63,
-      64,    56,    65,    65,    43,    46,    47,    56,    65,    65,
-      65,    56,    56,    65,    65,    65,    46,    47,    65,    65,
-      56,    56,    56,    65,    44,    68,    65,    56,    56,    56,
-      56,    56,    65,    56,    56,    56,    56,    56,    56,    56,
-      56,    41,    42,    44,    56,    56,    56,    65,    66,    42,
-      42,    41,    42,    43,    56,    41,    42,    42,    44,    44,
-      44,    56,    55,    44,    44,    44,    44,    44,    44,    44,
-      44,    44,    44,    44,    44,    44,    56,    56,    46,    54,
-      41,    42,    44,    52,    44,    44,    43,    46,    47,    65,
-      65,    65,    65,    56,    56,    56,    68,    65,    65,    57,
-      58,    65,    65,    65,    65,    65,    65,    65,    65,    65,
-      65,    65,    65,    44,    44,    41,    42,    44,    56,    65,
-      65,    65,    44,    65,    65,    42,    42,    41,    42,    41,
-      42,    41,    42,    42,    42,    65,    65,    54,    54,    54,
-      44,    46,    54,    65,    65,    65,    65,    65,    65,    56,
-      56,    56,    65,    41,    42,    44,    65,    44,    44,    44,
-      54,    54,    54,    65,    65,    65,    65,    65,    65
+      41,    61,    62,    63,    64,    68,    69,    70,    71,    72,
+      73,    74,    75,    76,    77,    78,    79,    80,    81,    82,
+      83,    84,    85,    86,    87,    88,    89,    90,    91,    92,
+      93,    94,    95,    96,    97,    98,    99,   100,   101,   102,
+     103,    41,    65,    41,    41,    42,    46,    66,    42,    40,
+      41,    38,    64,    41,    65,    64,    64,    64,    41,    42,
+      64,    41,    42,    43,    43,    43,    43,    52,    43,    43,
+      43,    43,    43,    43,    43,    43,    43,    43,    43,    43,
+      41,    42,    43,    50,    51,    43,    44,    43,    49,    62,
+      63,    55,    64,    64,    45,    46,    42,    55,    64,    64,
+      64,    55,    55,    64,    64,    64,    45,    46,    64,    64,
+      55,    55,    55,    64,    43,    67,    64,    55,    55,    55,
+      55,    55,    64,    55,    55,    55,    55,    55,    55,    55,
+      55,    41,    42,    43,    55,    55,    55,    64,    65,    42,
+      42,    41,    42,    46,    55,    41,    42,    42,    43,    43,
+      43,    55,    54,    43,    43,    43,    43,    43,    43,    43,
+      43,    43,    43,    43,    43,    43,    55,    55,    45,    53,
+      41,    42,    43,    51,    43,    44,    45,    46,    42,    64,
+      64,    64,    64,    55,    55,    55,    67,    64,    64,    56,
+      57,    64,    64,    64,    64,    64,    64,    64,    64,    64,
+      64,    64,    64,    43,    43,    41,    42,    43,    55,    64,
+      64,    64,    43,    64,    64,    42,    42,    41,    42,    41,
+      42,    41,    42,    42,    42,    64,    64,    53,    53,    53,
+      43,    45,    53,    64,    64,    64,    64,    64,    64,    55,
+      55,    55,    64,    41,    42,    43,    64,    43,    43,    43,
+      53,    53,    53,    64,    64,    64,    64,    64,    64
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    60,    61,    61,    61,    62,    62,    62,    62,    62,
-      62,    63,    63,    63,    63,    63,    63,    63,    63,    63,
-      63,    63,    63,    63,    63,    63,    63,    63,    63,    63,
-      63,    63,    63,    63,    63,    63,    63,    64,    64,    64,
-      64,    64,    64,    64,    64,    64,    65,    65,    65,    66,
-      66,    67,    67,    67,    67,    67,    67,    67,    67,    67,
-      67,    67,    67,    68,    68,    69,    70,    71,    72,    73,
-      74,    75,    76,    77,    78,    79,    80,    81,    81,    82,
-      82,    82,    82,    83,    83,    84,    84,    85,    85,    86,
-      87,    87,    87,    88,    89,    90,    91,    92,    93,    94,
-      95,    96,    97,    97,    98,    99,    99,    99,    99,    99,
-      99,    99,   100,   100,   100,   100,   100,   100,   100,   100,
-     100,   101,   102,   103,   104
+       0,    59,    60,    60,    60,    61,    61,    61,    61,    61,
+      61,    62,    62,    62,    62,    62,    62,    62,    62,    62,
+      62,    62,    62,    62,    62,    62,    62,    62,    62,    62,
+      62,    62,    62,    62,    62,    62,    62,    63,    63,    63,
+      63,    63,    63,    63,    63,    63,    64,    64,    64,    65,
+      65,    66,    66,    66,    66,    66,    66,    66,    66,    66,
+      66,    67,    67,    68,    69,    70,    71,    72,    73,    74,
+      75,    76,    77,    78,    79,    80,    80,    81,    81,    81,
+      81,    82,    82,    83,    83,    84,    84,    85,    86,    86,
+      86,    87,    88,    89,    90,    91,    92,    93,    94,    95,
+      96,    96,    97,    98,    98,    98,    98,    98,    98,    98,
+      99,    99,    99,    99,    99,    99,    99,    99,    99,   100,
+     101,   102,   103
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -933,14 +931,14 @@ static const yytype_int8 yyr2[] =
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     0,     1,
-       3,     1,     1,     3,     3,     2,     1,     3,     3,     5,
-       5,     4,     3,     1,     3,     3,     3,     3,     3,     3,
-       3,     5,     2,     5,     3,     2,     2,     3,     3,     3,
-       3,     5,     5,     7,     7,     7,     7,     7,     7,     5,
-       5,     6,     6,     5,     5,     5,     3,     5,     5,     5,
-       5,     5,     3,     5,     3,     5,     5,     5,     7,     9,
-       9,     9,     6,     6,     5,     5,     5,     7,     9,     9,
-       9,     2,     2,     5,     5
+       3,     1,     1,     2,     3,     3,     3,     3,     4,     5,
+       5,     1,     3,     3,     3,     3,     3,     3,     3,     5,
+       2,     5,     3,     2,     2,     3,     3,     3,     3,     5,
+       5,     7,     7,     7,     7,     7,     7,     5,     5,     6,
+       6,     5,     5,     5,     3,     5,     5,     5,     5,     5,
+       3,     5,     3,     5,     5,     5,     7,     9,     9,     9,
+       6,     6,     5,     5,     5,     7,     9,     9,     9,     2,
+       2,     5,     5
 };
 
 
@@ -1408,7 +1406,7 @@ yyreduce:
                  {
     symblist.push_back((yyvsp[0].str));
 }
-#line 1412 "src/parser.cpp"
+#line 1410 "src/parser.cpp"
     break;
 
   case 50: /* symblist: SYMBOL COMMA symblist  */
@@ -1416,125 +1414,131 @@ yyreduce:
                           {
     symblist.push_back((yyvsp[-2].str));
 }
-#line 1420 "src/parser.cpp"
+#line 1418 "src/parser.cpp"
     break;
 
   case 51: /* vallist: SYMBOL  */
-#line 79 "misc/parser.y"
-             { vallist.push_back({(yyvsp[0].str), valtype::SYM}); }
-#line 1426 "src/parser.cpp"
+#line 80 "misc/parser.y"
+        { vallist.push_back({ (yyvsp[0].str), valtype::SYM }); }
+#line 1424 "src/parser.cpp"
     break;
 
   case 52: /* vallist: INTEGER  */
-#line 80 "misc/parser.y"
-              { vallist.push_back({(yyvsp[0].str), valtype::INT}); }
-#line 1432 "src/parser.cpp"
-    break;
-
-  case 53: /* vallist: SYMBOL PLUS INTEGER  */
-#line 81 "misc/parser.y"
-                          { vallist.push_back({std::string((yyvsp[-2].str)) + "+" + std::string((yyvsp[0].str)), valtype::SYM}); }
-#line 1438 "src/parser.cpp"
-    break;
-
-  case 54: /* vallist: SYMBOL MINUS INTEGER  */
 #line 82 "misc/parser.y"
-                           { vallist.push_back({std::string((yyvsp[-2].str)) + "-" + std::string((yyvsp[0].str)), valtype::SYM}); }
-#line 1444 "src/parser.cpp"
+        { vallist.push_back({ (yyvsp[0].str), valtype::INT }); }
+#line 1430 "src/parser.cpp"
     break;
 
-  case 55: /* vallist: SYMBOL MINUS_INTEGER  */
-#line 83 "misc/parser.y"
-                           { vallist.push_back({std::string((yyvsp[-1].str)) + std::string((yyvsp[0].str)), valtype::SYM}); }
-#line 1450 "src/parser.cpp"
-    break;
-
-  case 56: /* vallist: MINUS_INTEGER  */
+  case 53: /* vallist: MINUS INTEGER  */
 #line 84 "misc/parser.y"
-                    { vallist.push_back({(yyvsp[0].str), valtype::INT}); }
-#line 1456 "src/parser.cpp"
+        {
+            std::string lit = "-" + std::string((yyvsp[0].str));
+            vallist.push_back({ lit, valtype::INT });
+        }
+#line 1439 "src/parser.cpp"
     break;
 
-  case 57: /* vallist: vallist COMMA SYMBOL  */
-#line 85 "misc/parser.y"
-                           { vallist.push_back({(yyvsp[0].str), valtype::SYM}); }
-#line 1462 "src/parser.cpp"
+  case 54: /* vallist: SYMBOL PLUS INTEGER  */
+#line 89 "misc/parser.y"
+        {
+            std::string lit = std::string((yyvsp[-2].str)) + "+" + std::string((yyvsp[0].str));
+            vallist.push_back({ lit, valtype::SYM });
+        }
+#line 1448 "src/parser.cpp"
     break;
 
-  case 58: /* vallist: vallist COMMA INTEGER  */
-#line 86 "misc/parser.y"
-                            { vallist.push_back({(yyvsp[0].str), valtype::INT}); }
-#line 1468 "src/parser.cpp"
+  case 55: /* vallist: SYMBOL MINUS INTEGER  */
+#line 94 "misc/parser.y"
+        {
+            std::string lit = std::string((yyvsp[-2].str)) + "-" + std::string((yyvsp[0].str));
+            vallist.push_back({ lit, valtype::SYM });
+        }
+#line 1457 "src/parser.cpp"
+    break;
+
+  case 56: /* vallist: vallist COMMA SYMBOL  */
+#line 99 "misc/parser.y"
+        { vallist.push_back({ (yyvsp[0].str), valtype::SYM }); }
+#line 1463 "src/parser.cpp"
+    break;
+
+  case 57: /* vallist: vallist COMMA INTEGER  */
+#line 101 "misc/parser.y"
+        { vallist.push_back({ (yyvsp[0].str), valtype::INT }); }
+#line 1469 "src/parser.cpp"
+    break;
+
+  case 58: /* vallist: vallist COMMA MINUS INTEGER  */
+#line 103 "misc/parser.y"
+        {
+            std::string lit = "-" + std::string((yyvsp[-1].str));
+            vallist.push_back({ lit, valtype::INT });
+        }
+#line 1478 "src/parser.cpp"
     break;
 
   case 59: /* vallist: vallist COMMA SYMBOL PLUS INTEGER  */
-#line 87 "misc/parser.y"
-                                        { vallist.push_back({std::string((yyvsp[-2].str)) + "+" + std::string((yyvsp[0].str)), valtype::SYM}); }
-#line 1474 "src/parser.cpp"
+#line 108 "misc/parser.y"
+        {
+            std::string lit = std::string((yyvsp[-2].str)) + "+" + std::string((yyvsp[0].str));
+            vallist.push_back({ lit, valtype::SYM });
+        }
+#line 1487 "src/parser.cpp"
     break;
 
   case 60: /* vallist: vallist COMMA SYMBOL MINUS INTEGER  */
-#line 88 "misc/parser.y"
-                                         { vallist.push_back({std::string((yyvsp[-2].str)) + "-" + std::string((yyvsp[0].str)), valtype::SYM}); }
-#line 1480 "src/parser.cpp"
+#line 113 "misc/parser.y"
+        {
+            std::string lit = std::string((yyvsp[-2].str)) + "-" + std::string((yyvsp[0].str));
+            vallist.push_back({ lit, valtype::SYM });
+        }
+#line 1496 "src/parser.cpp"
     break;
 
-  case 61: /* vallist: vallist COMMA SYMBOL MINUS_INTEGER  */
-#line 89 "misc/parser.y"
-                                         { vallist.push_back({std::string((yyvsp[-1].str)) + std::string((yyvsp[0].str)), valtype::SYM}); }
-#line 1486 "src/parser.cpp"
-    break;
-
-  case 62: /* vallist: vallist COMMA MINUS_INTEGER  */
-#line 90 "misc/parser.y"
-                                  { vallist.push_back({(yyvsp[0].str), valtype::INT}); }
-#line 1492 "src/parser.cpp"
-    break;
-
-  case 63: /* reglist: REGISTER  */
-#line 93 "misc/parser.y"
+  case 61: /* reglist: REGISTER  */
+#line 119 "misc/parser.y"
                   {
     reglist.push_back(regs[(yyvsp[0].str)]);
 }
-#line 1500 "src/parser.cpp"
+#line 1504 "src/parser.cpp"
     break;
 
-  case 64: /* reglist: REGISTER COMMA reglist  */
-#line 95 "misc/parser.y"
+  case 62: /* reglist: REGISTER COMMA reglist  */
+#line 121 "misc/parser.y"
                            {
     reglist.push_back(regs[(yyvsp[-2].str)]);
 }
-#line 1508 "src/parser.cpp"
+#line 1512 "src/parser.cpp"
     break;
 
-  case 65: /* label: SYMBOL COLON terminate  */
-#line 100 "misc/parser.y"
+  case 63: /* label: SYMBOL COLON terminate  */
+#line 126 "misc/parser.y"
                               {
     SymTab::add_definition((yyvsp[-2].str), section->getName(), section->getSize());
 }
-#line 1516 "src/parser.cpp"
+#line 1520 "src/parser.cpp"
     break;
 
-  case 66: /* global: dotGLOBAL symblist terminate  */
-#line 104 "misc/parser.y"
+  case 64: /* global: dotGLOBAL symblist terminate  */
+#line 130 "misc/parser.y"
                                      {
     for (auto& symb : symblist)
         SymTab::globals.insert(symb);
     symblist.clear();
 }
-#line 1526 "src/parser.cpp"
+#line 1530 "src/parser.cpp"
     break;
 
-  case 67: /* section: dotSECTION SYMBOL terminate  */
-#line 110 "misc/parser.y"
+  case 65: /* section: dotSECTION SYMBOL terminate  */
+#line 136 "misc/parser.y"
                                      {
     section = Section::extract((yyvsp[-1].str));
 }
-#line 1534 "src/parser.cpp"
+#line 1538 "src/parser.cpp"
     break;
 
-  case 68: /* word: dotWORD vallist terminate  */
-#line 114 "misc/parser.y"
+  case 66: /* word: dotWORD vallist terminate  */
+#line 140 "misc/parser.y"
                                 {
     for (auto it = vallist.rbegin(); it != vallist.rend(); ++it) {
         if (it->second == valtype::INT) {
@@ -1558,21 +1562,21 @@ yyreduce:
     }
     vallist.clear();
 }
-#line 1562 "src/parser.cpp"
+#line 1566 "src/parser.cpp"
     break;
 
-  case 69: /* skip: dotSKIP INTEGER terminate  */
-#line 138 "misc/parser.y"
+  case 67: /* skip: dotSKIP INTEGER terminate  */
+#line 164 "misc/parser.y"
                                 {
     for (int i = 0; i < toInt((yyvsp[-1].str)); i++) {
         section->insertByte(0);
     }
 }
-#line 1572 "src/parser.cpp"
+#line 1576 "src/parser.cpp"
     break;
 
-  case 70: /* ascii: dotASCII STRING terminate  */
-#line 144 "misc/parser.y"
+  case 68: /* ascii: dotASCII STRING terminate  */
+#line 170 "misc/parser.y"
                                  {
     std::string raw((yyvsp[-1].str));
     if (!raw.empty() && raw.front() == '"' && raw.back() == '"') {
@@ -1582,472 +1586,472 @@ yyreduce:
         section->insertByte(static_cast<unsigned char>(c));
     }
 }
-#line 1586 "src/parser.cpp"
+#line 1590 "src/parser.cpp"
     break;
 
-  case 71: /* equ: dotEQU SYMBOL COMMA COMMA terminate  */
-#line 154 "misc/parser.y"
+  case 69: /* equ: dotEQU SYMBOL COMMA COMMA terminate  */
+#line 180 "misc/parser.y"
                                          {
 
 }
-#line 1594 "src/parser.cpp"
+#line 1598 "src/parser.cpp"
     break;
 
-  case 72: /* end: dotEND terminate  */
-#line 158 "misc/parser.y"
+  case 70: /* end: dotEND terminate  */
+#line 184 "misc/parser.y"
                       {
     YYABORT;
 }
-#line 1602 "src/parser.cpp"
+#line 1606 "src/parser.cpp"
     break;
 
-  case 73: /* type: dotTYPE SYMBOL COMMA SYMBOL terminate  */
-#line 162 "misc/parser.y"
+  case 71: /* type: dotTYPE SYMBOL COMMA SYMBOL terminate  */
+#line 188 "misc/parser.y"
                                             {
     SymTab::add_type((yyvsp[-3].str), (yyvsp[-1].str));
 }
-#line 1610 "src/parser.cpp"
+#line 1614 "src/parser.cpp"
     break;
 
-  case 74: /* weak: dotWEAK symblist terminate  */
-#line 166 "misc/parser.y"
+  case 72: /* weak: dotWEAK symblist terminate  */
+#line 192 "misc/parser.y"
                                  {
     for (auto& symb : symblist)
         SymTab::weaks.insert(symb);
     symblist.clear();
 }
-#line 1620 "src/parser.cpp"
+#line 1624 "src/parser.cpp"
     break;
 
-  case 75: /* halt: HALT terminate  */
-#line 173 "misc/parser.y"
+  case 73: /* halt: HALT terminate  */
+#line 199 "misc/parser.y"
                      {
     section->add_instruction();
 }
-#line 1628 "src/parser.cpp"
+#line 1632 "src/parser.cpp"
     break;
 
-  case 76: /* int: INTERRUPT terminate  */
-#line 177 "misc/parser.y"
+  case 74: /* int: INTERRUPT terminate  */
+#line 203 "misc/parser.y"
                          {
     section->add_instruction(0b0001);
 }
-#line 1636 "src/parser.cpp"
+#line 1640 "src/parser.cpp"
     break;
 
-  case 77: /* call: CALL SYMBOL terminate  */
-#line 181 "misc/parser.y"
+  case 75: /* call: CALL SYMBOL terminate  */
+#line 207 "misc/parser.y"
                             {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b0010, 0b0001, 15);
 }
-#line 1645 "src/parser.cpp"
+#line 1649 "src/parser.cpp"
     break;
 
-  case 78: /* call: CALL INTEGER terminate  */
-#line 184 "misc/parser.y"
+  case 76: /* call: CALL INTEGER terminate  */
+#line 210 "misc/parser.y"
                            {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b0010, 0b0001, 15);
 }
-#line 1654 "src/parser.cpp"
+#line 1658 "src/parser.cpp"
     break;
 
-  case 79: /* jmp: JUMP SYMBOL terminate  */
-#line 188 "misc/parser.y"
+  case 77: /* jmp: JUMP SYMBOL terminate  */
+#line 214 "misc/parser.y"
                            {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b0011, 0b1000, 15);
 }
-#line 1663 "src/parser.cpp"
+#line 1667 "src/parser.cpp"
     break;
 
-  case 80: /* jmp: JUMP INTEGER terminate  */
-#line 191 "misc/parser.y"
+  case 78: /* jmp: JUMP INTEGER terminate  */
+#line 217 "misc/parser.y"
                            {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1000, 15);
 }
-#line 1672 "src/parser.cpp"
+#line 1676 "src/parser.cpp"
     break;
 
-  case 81: /* jmp: JUMP SYMBOL PLUS INTEGER terminate  */
-#line 194 "misc/parser.y"
+  case 79: /* jmp: JUMP SYMBOL PLUS INTEGER terminate  */
+#line 220 "misc/parser.y"
                                        {
     section->add_literal(std::string((yyvsp[-3].str)) + "+" + std::string((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1000, 15);
 }
-#line 1681 "src/parser.cpp"
+#line 1685 "src/parser.cpp"
     break;
 
-  case 82: /* jmp: JUMP SYMBOL MINUS INTEGER terminate  */
-#line 197 "misc/parser.y"
+  case 80: /* jmp: JUMP SYMBOL MINUS INTEGER terminate  */
+#line 223 "misc/parser.y"
                                         {
     section->add_literal(std::string((yyvsp[-3].str)) + "-" + std::string((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1000, 15);
 }
-#line 1690 "src/parser.cpp"
+#line 1694 "src/parser.cpp"
     break;
 
-  case 83: /* beq: BRANCH_EQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate  */
-#line 202 "misc/parser.y"
+  case 81: /* beq: BRANCH_EQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate  */
+#line 228 "misc/parser.y"
                                                                  {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b0011, 0b1001, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1699 "src/parser.cpp"
+#line 1703 "src/parser.cpp"
     break;
 
-  case 84: /* beq: BRANCH_EQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate  */
-#line 205 "misc/parser.y"
+  case 82: /* beq: BRANCH_EQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate  */
+#line 231 "misc/parser.y"
                                                                  {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1001, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1708 "src/parser.cpp"
+#line 1712 "src/parser.cpp"
     break;
 
-  case 85: /* bne: BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate  */
-#line 209 "misc/parser.y"
+  case 83: /* bne: BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate  */
+#line 235 "misc/parser.y"
                                                                     {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b0011, 0b1010, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1717 "src/parser.cpp"
+#line 1721 "src/parser.cpp"
     break;
 
-  case 86: /* bne: BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate  */
-#line 212 "misc/parser.y"
+  case 84: /* bne: BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate  */
+#line 238 "misc/parser.y"
                                                                     {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1010, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1726 "src/parser.cpp"
+#line 1730 "src/parser.cpp"
     break;
 
-  case 87: /* bgt: BRANCH_GREATER REGISTER COMMA REGISTER COMMA SYMBOL terminate  */
-#line 216 "misc/parser.y"
+  case 85: /* bgt: BRANCH_GREATER REGISTER COMMA REGISTER COMMA SYMBOL terminate  */
+#line 242 "misc/parser.y"
                                                                    {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b0011, 0b1011, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1735 "src/parser.cpp"
+#line 1739 "src/parser.cpp"
     break;
 
-  case 88: /* bgt: BRANCH_GREATER REGISTER COMMA REGISTER COMMA INTEGER terminate  */
-#line 219 "misc/parser.y"
+  case 86: /* bgt: BRANCH_GREATER REGISTER COMMA REGISTER COMMA INTEGER terminate  */
+#line 245 "misc/parser.y"
                                                                    {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1011, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1744 "src/parser.cpp"
+#line 1748 "src/parser.cpp"
     break;
 
-  case 89: /* xchg: EXCHANGE REGISTER COMMA REGISTER terminate  */
-#line 224 "misc/parser.y"
+  case 87: /* xchg: EXCHANGE REGISTER COMMA REGISTER terminate  */
+#line 250 "misc/parser.y"
                                                  {
     section->add_instruction(0b0100, 0b0000, 0, regs[(yyvsp[-3].str)], regs[(yyvsp[-1].str)]);
 }
-#line 1752 "src/parser.cpp"
+#line 1756 "src/parser.cpp"
     break;
 
-  case 90: /* add: ADD REGISTER COMMA REGISTER terminate  */
-#line 228 "misc/parser.y"
+  case 88: /* add: ADD REGISTER COMMA REGISTER terminate  */
+#line 254 "misc/parser.y"
                                            {
     section->add_instruction(0b0101, 0b0000, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1760 "src/parser.cpp"
+#line 1764 "src/parser.cpp"
     break;
 
-  case 91: /* add: ADD REGISTER COMMA REGISTER GRGR INTEGER  */
-#line 230 "misc/parser.y"
+  case 89: /* add: ADD REGISTER COMMA REGISTER GRGR INTEGER  */
+#line 256 "misc/parser.y"
                                              {
 
 }
-#line 1768 "src/parser.cpp"
+#line 1772 "src/parser.cpp"
     break;
 
-  case 92: /* add: ADD REGISTER COMMA REGISTER LSLS INTEGER  */
-#line 232 "misc/parser.y"
+  case 90: /* add: ADD REGISTER COMMA REGISTER LSLS INTEGER  */
+#line 258 "misc/parser.y"
                                              {
 
 }
-#line 1776 "src/parser.cpp"
+#line 1780 "src/parser.cpp"
     break;
 
-  case 93: /* sub: SUBTRACT REGISTER COMMA REGISTER terminate  */
-#line 235 "misc/parser.y"
+  case 91: /* sub: SUBTRACT REGISTER COMMA REGISTER terminate  */
+#line 261 "misc/parser.y"
                                                 {
     section->add_instruction(0b0101, 0b0001, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1784 "src/parser.cpp"
+#line 1788 "src/parser.cpp"
     break;
 
-  case 94: /* mul: MULTIPLY REGISTER COMMA REGISTER terminate  */
-#line 238 "misc/parser.y"
+  case 92: /* mul: MULTIPLY REGISTER COMMA REGISTER terminate  */
+#line 264 "misc/parser.y"
                                                 {
     section->add_instruction(0b0101, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1792 "src/parser.cpp"
+#line 1796 "src/parser.cpp"
     break;
 
-  case 95: /* div: DIVIDE REGISTER COMMA REGISTER terminate  */
-#line 241 "misc/parser.y"
+  case 93: /* div: DIVIDE REGISTER COMMA REGISTER terminate  */
+#line 267 "misc/parser.y"
                                               {
     section->add_instruction(0b0101, 0b0011, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1800 "src/parser.cpp"
+#line 1804 "src/parser.cpp"
     break;
 
-  case 96: /* not: NOT REGISTER terminate  */
-#line 245 "misc/parser.y"
+  case 94: /* not: NOT REGISTER terminate  */
+#line 271 "misc/parser.y"
                             {
     section->add_instruction(0b0110, 0b0000, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)]);
 }
-#line 1808 "src/parser.cpp"
+#line 1812 "src/parser.cpp"
     break;
 
-  case 97: /* and: AND REGISTER COMMA REGISTER terminate  */
-#line 248 "misc/parser.y"
+  case 95: /* and: AND REGISTER COMMA REGISTER terminate  */
+#line 274 "misc/parser.y"
                                            {
     section->add_instruction(0b0110, 0b0001, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1816 "src/parser.cpp"
+#line 1820 "src/parser.cpp"
     break;
 
-  case 98: /* or: OR REGISTER COMMA REGISTER terminate  */
-#line 251 "misc/parser.y"
+  case 96: /* or: OR REGISTER COMMA REGISTER terminate  */
+#line 277 "misc/parser.y"
                                          {
     section->add_instruction(0b0110, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1824 "src/parser.cpp"
+#line 1828 "src/parser.cpp"
     break;
 
-  case 99: /* xor: XOR REGISTER COMMA REGISTER terminate  */
-#line 254 "misc/parser.y"
+  case 97: /* xor: XOR REGISTER COMMA REGISTER terminate  */
+#line 280 "misc/parser.y"
                                            {
     section->add_instruction(0b0110, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1832 "src/parser.cpp"
+#line 1836 "src/parser.cpp"
     break;
 
-  case 100: /* shl: SHIFT_LEFT REGISTER COMMA REGISTER terminate  */
-#line 258 "misc/parser.y"
+  case 98: /* shl: SHIFT_LEFT REGISTER COMMA REGISTER terminate  */
+#line 284 "misc/parser.y"
                                                   {
     section->add_instruction(0b0111, 0b0000, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1840 "src/parser.cpp"
+#line 1844 "src/parser.cpp"
     break;
 
-  case 101: /* shr: SHIFT_RIGHT REGISTER COMMA REGISTER terminate  */
-#line 261 "misc/parser.y"
+  case 99: /* shr: SHIFT_RIGHT REGISTER COMMA REGISTER terminate  */
+#line 287 "misc/parser.y"
                                                    {
     section->add_instruction(0b0111, 0b0001, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1848 "src/parser.cpp"
+#line 1852 "src/parser.cpp"
     break;
 
-  case 102: /* push: PUSH REGISTER terminate  */
-#line 265 "misc/parser.y"
+  case 100: /* push: PUSH REGISTER terminate  */
+#line 291 "misc/parser.y"
                               {
     section->add_instruction(0b1000, 0b0001, 14, 0, regs[(yyvsp[-1].str)], -4);
 }
-#line 1856 "src/parser.cpp"
+#line 1860 "src/parser.cpp"
     break;
 
-  case 103: /* push: PUSH LCBRACKET reglist RCBRACKET terminate  */
-#line 267 "misc/parser.y"
+  case 101: /* push: PUSH LCBRACKET reglist RCBRACKET terminate  */
+#line 293 "misc/parser.y"
                                                {
     for (auto it = reglist.rbegin(); it != reglist.rend(); ++it) {
         section->add_instruction(0b1000, 0b0001, 14, 0, *it, -4);
     }
     reglist.clear();
 }
-#line 1867 "src/parser.cpp"
+#line 1871 "src/parser.cpp"
     break;
 
-  case 104: /* pop: POP REGISTER terminate  */
-#line 274 "misc/parser.y"
+  case 102: /* pop: POP REGISTER terminate  */
+#line 300 "misc/parser.y"
                             {
     section->add_instruction(0b1001, 0b0011, regs[(yyvsp[-1].str)], 14, 0, 4);
 }
-#line 1875 "src/parser.cpp"
+#line 1879 "src/parser.cpp"
     break;
 
-  case 105: /* st: STORE REGISTER COMMA INTEGER terminate  */
-#line 278 "misc/parser.y"
+  case 103: /* st: STORE REGISTER COMMA INTEGER terminate  */
+#line 304 "misc/parser.y"
                                            {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[(yyvsp[-3].str)]);
 }
-#line 1884 "src/parser.cpp"
+#line 1888 "src/parser.cpp"
     break;
 
-  case 106: /* st: STORE REGISTER COMMA SYMBOL terminate  */
-#line 281 "misc/parser.y"
+  case 104: /* st: STORE REGISTER COMMA SYMBOL terminate  */
+#line 307 "misc/parser.y"
                                           {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[(yyvsp[-3].str)]);
 }
-#line 1893 "src/parser.cpp"
+#line 1897 "src/parser.cpp"
     break;
 
-  case 107: /* st: STORE REGISTER COMMA REGISTER terminate  */
-#line 284 "misc/parser.y"
+  case 105: /* st: STORE REGISTER COMMA REGISTER terminate  */
+#line 310 "misc/parser.y"
                                             {
     section->add_instruction(0b1001, 0b0001, regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1901 "src/parser.cpp"
+#line 1905 "src/parser.cpp"
     break;
 
-  case 108: /* st: STORE REGISTER COMMA LBRACKET REGISTER RBRACKET terminate  */
-#line 286 "misc/parser.y"
+  case 106: /* st: STORE REGISTER COMMA LBRACKET REGISTER RBRACKET terminate  */
+#line 312 "misc/parser.y"
                                                               {
     section->add_instruction(0b1000, 0b0000, regs[(yyvsp[-2].str)], 0, regs[(yyvsp[-5].str)]);
 }
-#line 1909 "src/parser.cpp"
+#line 1913 "src/parser.cpp"
     break;
 
-  case 109: /* st: STORE REGISTER COMMA LBRACKET REGISTER PLUS INTEGER RBRACKET terminate  */
-#line 288 "misc/parser.y"
+  case 107: /* st: STORE REGISTER COMMA LBRACKET REGISTER PLUS INTEGER RBRACKET terminate  */
+#line 314 "misc/parser.y"
                                                                            {
     section->add_instruction(0b1000, 0b0000, regs[(yyvsp[-4].str)], 0, regs[(yyvsp[-7].str)], toInt((yyvsp[-2].str)));
 }
-#line 1917 "src/parser.cpp"
+#line 1921 "src/parser.cpp"
     break;
 
-  case 110: /* st: STORE REGISTER COMMA LBRACKET REGISTER PLUS SYMBOL RBRACKET terminate  */
-#line 290 "misc/parser.y"
+  case 108: /* st: STORE REGISTER COMMA LBRACKET REGISTER PLUS SYMBOL RBRACKET terminate  */
+#line 316 "misc/parser.y"
                                                                           {
     section->add_literal((yyvsp[-2].str));
     section->add_instruction(0b1000, 0b0000, regs[(yyvsp[-4].str)], 0, regs[(yyvsp[-7].str)]);
 }
-#line 1926 "src/parser.cpp"
+#line 1930 "src/parser.cpp"
     break;
 
-  case 111: /* st: STORE REGISTER COMMA LBRACKET REGISTER PLUS REGISTER RBRACKET terminate  */
-#line 293 "misc/parser.y"
+  case 109: /* st: STORE REGISTER COMMA LBRACKET REGISTER PLUS REGISTER RBRACKET terminate  */
+#line 319 "misc/parser.y"
                                                                             {
     section->add_instruction(0b1000, 0b0000, regs[(yyvsp[-4].str)], regs[(yyvsp[-2].str)], regs[(yyvsp[-7].str)]);
 }
-#line 1934 "src/parser.cpp"
+#line 1938 "src/parser.cpp"
     break;
 
-  case 112: /* ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate  */
-#line 297 "misc/parser.y"
+  case 110: /* ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate  */
+#line 323 "misc/parser.y"
                                                  {
     section->add_literal(toInt((yyvsp[-3].str)));
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], 15);
 }
-#line 1943 "src/parser.cpp"
+#line 1947 "src/parser.cpp"
     break;
 
-  case 113: /* ld: LOAD DOLLAR SYMBOL COMMA REGISTER terminate  */
-#line 300 "misc/parser.y"
+  case 111: /* ld: LOAD DOLLAR SYMBOL COMMA REGISTER terminate  */
+#line 326 "misc/parser.y"
                                                 {
     section->add_literal((yyvsp[-3].str));
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], 15);
 }
-#line 1952 "src/parser.cpp"
+#line 1956 "src/parser.cpp"
     break;
 
-  case 114: /* ld: LOAD INTEGER COMMA REGISTER terminate  */
-#line 303 "misc/parser.y"
+  case 112: /* ld: LOAD INTEGER COMMA REGISTER terminate  */
+#line 329 "misc/parser.y"
                                           {
     section->add_literal(toInt((yyvsp[-3].str)));
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], 0b1111);
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)]);
 }
-#line 1962 "src/parser.cpp"
+#line 1966 "src/parser.cpp"
     break;
 
-  case 115: /* ld: LOAD SYMBOL COMMA REGISTER terminate  */
-#line 307 "misc/parser.y"
+  case 113: /* ld: LOAD SYMBOL COMMA REGISTER terminate  */
+#line 333 "misc/parser.y"
                                          {
     section->add_literal((yyvsp[-3].str));
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], 0b1111);
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)]);
 }
-#line 1972 "src/parser.cpp"
+#line 1976 "src/parser.cpp"
     break;
 
-  case 116: /* ld: LOAD REGISTER COMMA REGISTER terminate  */
-#line 311 "misc/parser.y"
+  case 114: /* ld: LOAD REGISTER COMMA REGISTER terminate  */
+#line 337 "misc/parser.y"
                                            {
     section->add_instruction(0b1001, 0b0001, regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1980 "src/parser.cpp"
+#line 1984 "src/parser.cpp"
     break;
 
-  case 117: /* ld: LOAD LBRACKET REGISTER RBRACKET COMMA REGISTER terminate  */
-#line 313 "misc/parser.y"
+  case 115: /* ld: LOAD LBRACKET REGISTER RBRACKET COMMA REGISTER terminate  */
+#line 339 "misc/parser.y"
                                                              {
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-4].str)]);
 }
-#line 1988 "src/parser.cpp"
+#line 1992 "src/parser.cpp"
     break;
 
-  case 118: /* ld: LOAD LBRACKET REGISTER PLUS INTEGER RBRACKET COMMA REGISTER terminate  */
-#line 315 "misc/parser.y"
+  case 116: /* ld: LOAD LBRACKET REGISTER PLUS INTEGER RBRACKET COMMA REGISTER terminate  */
+#line 341 "misc/parser.y"
                                                                           {
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-6].str)], toInt((yyvsp[-4].str)));
 }
-#line 1996 "src/parser.cpp"
+#line 2000 "src/parser.cpp"
     break;
 
-  case 119: /* ld: LOAD LBRACKET REGISTER PLUS SYMBOL RBRACKET COMMA REGISTER terminate  */
-#line 317 "misc/parser.y"
+  case 117: /* ld: LOAD LBRACKET REGISTER PLUS SYMBOL RBRACKET COMMA REGISTER terminate  */
+#line 343 "misc/parser.y"
                                                                          {
     SymTab::add_occurrence((yyvsp[-4].str), section->getName(), section->getSize(), false);
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-6].str)]);
 }
-#line 2005 "src/parser.cpp"
+#line 2009 "src/parser.cpp"
     break;
 
-  case 120: /* ld: LOAD LBRACKET REGISTER PLUS REGISTER RBRACKET COMMA REGISTER terminate  */
-#line 320 "misc/parser.y"
+  case 118: /* ld: LOAD LBRACKET REGISTER PLUS REGISTER RBRACKET COMMA REGISTER terminate  */
+#line 346 "misc/parser.y"
                                                                            {
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-6].str)], regs[(yyvsp[-4].str)]);
 }
-#line 2013 "src/parser.cpp"
+#line 2017 "src/parser.cpp"
     break;
 
-  case 121: /* ret: RETURN terminate  */
-#line 324 "misc/parser.y"
+  case 119: /* ret: RETURN terminate  */
+#line 350 "misc/parser.y"
                       {
     section->add_instruction(0b1001, 0b0011, 15, 14, 0, 4);
 }
-#line 2021 "src/parser.cpp"
+#line 2025 "src/parser.cpp"
     break;
 
-  case 122: /* iret: INTERRUPT_RETURN terminate  */
-#line 328 "misc/parser.y"
+  case 120: /* iret: INTERRUPT_RETURN terminate  */
+#line 354 "misc/parser.y"
                                  {
     section->add_instruction(0b1001, 0b0100, 0b0010);
     section->add_instruction(0b1001, 0b0011, 0b0000, 0b1110, 0, 4);
     section->add_instruction(0b1001, 0b0011, 0b1111, 0b1110, 0, 4);
 }
-#line 2031 "src/parser.cpp"
+#line 2035 "src/parser.cpp"
     break;
 
-  case 123: /* csrrd: CSRRD SYSTEM_REGISTER COMMA REGISTER terminate  */
-#line 334 "misc/parser.y"
+  case 121: /* csrrd: CSRRD SYSTEM_REGISTER COMMA REGISTER terminate  */
+#line 360 "misc/parser.y"
                                                       {
     section->add_instruction(0b1001, 0b0000, regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 2039 "src/parser.cpp"
+#line 2043 "src/parser.cpp"
     break;
 
-  case 124: /* csrwr: CSRWR SYSTEM_REGISTER COMMA REGISTER terminate  */
-#line 337 "misc/parser.y"
+  case 122: /* csrwr: CSRWR REGISTER COMMA SYSTEM_REGISTER terminate  */
+#line 363 "misc/parser.y"
                                                       {
     section->add_instruction(0b1001, 0b0100, regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 2047 "src/parser.cpp"
+#line 2051 "src/parser.cpp"
     break;
 
 
-#line 2051 "src/parser.cpp"
+#line 2055 "src/parser.cpp"
 
       default: break;
     }
@@ -2240,7 +2244,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 341 "misc/parser.y"
+#line 367 "misc/parser.y"
 
 
 void yyerror(const char *s) {

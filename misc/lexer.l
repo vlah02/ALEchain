@@ -64,7 +64,6 @@ operator "+"|"-"|"*"|"/"
 "#"(.)* { yylval.str = strdup(yytext); return COMMENT; }
 \"([^\"]*)\"   { yylval.str = strdup(yytext); return STRING; }
 {letter}({alphanum})* { yylval.str = strdup(yytext); return SYMBOL; }
-"-"{decimal}      { yylval.str = strdup(yytext); return MINUS_INTEGER; }
 {decimal}         { yylval.str = strdup(yytext); return INTEGER; }
 {hexa}            { yylval.str = strdup(yytext); return INTEGER; }
 {octal}           { yylval.str = strdup(yytext); return INTEGER; }

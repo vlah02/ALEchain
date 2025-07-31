@@ -16,3 +16,15 @@ clean:
 
 asmtest: clean assembler
 	 ./assembler -o tests/output.s tests/input.s
+
+levela:
+	./assembler -o tests/levelA/main.o tests/levelA/main.s
+	./assembler -o tests/levelA/math.o tests/levelA/math.s
+	./assembler -o tests/levelA/handler.o tests/levelA/handler.s
+	./assembler -o tests/levelA/isr_timer.o tests/levelA/isr_timer.s
+	./assembler -o tests/levelA/isr_terminal.o tests/levelA/isr_terminal.s
+	./assembler -o tests/levelA/isr_software.o tests/levelA/isr_software.s
+	./linker -hex \
+		-place=my_code@0x40000000 -place=math@0xF0000000 \
+		-o tests/levelA/program.hex \
+		tests/levelA/handler.o tests/levelA/math.o tests/levelA/main.o tests/levelA/isr_terminal.o tests/levelA/isr_timer.o tests/levelA/isr_software.o
