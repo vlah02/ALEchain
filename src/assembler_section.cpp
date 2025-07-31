@@ -8,10 +8,21 @@ std::unordered_map<std::string, Section*> Section::sections;
 std::vector<RelocationEntry> Section::relocations;
 
 void Section::add_instruction(unsigned char OC, unsigned char MOD, unsigned char RegA, unsigned char RegB, unsigned char RegC, signed short Disp) {
+    // Print debug info before pushing
+    fprintf(stderr, "add_instruction: OC=0x%X MOD=0x%X RegA=0x%X RegB=0x%X RegC=0x%X Disp=%d | Offset=%zu\n",
+        OC, MOD, RegA, RegB, RegC, Disp, data.size());
+
+    // Show next instruction address (helps match reference)
+    fprintf(stderr, "   Will emit at instruction index %zu\n", data.size() / 4);
+
+    // Actually emit
     this->data.push_back(OC << 4 | MOD & 0x0F);
     this->data.push_back(RegA << 4 | RegB & 0x0F);
     this->data.push_back(RegC << 4 | (Disp >> 8) & 0x0F);
     this->data.push_back(Disp & 0xFF);
+
+    // Optionally print raw bytes
+    fprintf(stderr, "   Bytes: %02X %02X %02X %02X\n", data[data.size()-4], data[data.size()-3], data[data.size()-2], data[data.size()-1]);
 }
 
 void Section::add_literal(const std::string& literal, int addend) {
@@ -40,15 +51,27 @@ void Section::dumpPool() {
             section->data[lineToReplace + 3] = displacement & 0x0FF;
             section->data[lineToReplace + 2] |= displacement >> 8;
 
-            auto def = SymTab::table.find(literal.symbol);
-            if (def != SymTab::table.end() && def->second->line != -1) {
-                int value = def->second->line + literal.addend;
-                section->insertInt(value);
-            } else {
-                Section::relocations.push_back(
-                    RelocationEntry(section_name, lineToReplace, "ABS", literal.symbol, literal.addend)
-                );
-                section->insertInt(0);
+            if (literal.value != -1) {
+                // This is a direct integer literal
+                fprintf(stderr, "[POOL] insertInt(%ld) at section=%s, offset=%zu\n",
+                    literal.value, section_name.c_str(), section->data.size());
+                section->insertInt(literal.value);
+            } else if (!literal.symbol.empty()) {
+                // This is a symbol (possibly with an addend)
+                auto def = SymTab::table.find(literal.symbol);
+                if (def != SymTab::table.end() && def->second->line != -1) {
+                    int value = def->second->line + literal.addend;
+                    fprintf(stderr, "[POOL] insertInt(symbol=%s value=%d addend=%d) at section=%s, offset=%zu\n",
+                        literal.symbol.c_str(), value, literal.addend, section_name.c_str(), section->data.size());
+                    section->insertInt(value);
+                } else {
+                    fprintf(stderr, "[POOL] insertInt(0) for undefined symbol=%s at section=%s, offset=%zu\n",
+                        literal.symbol.c_str(), section_name.c_str(), section->data.size());
+                    Section::relocations.push_back(
+                        RelocationEntry(section_name, lineToReplace, "ABS", literal.symbol, literal.addend)
+                    );
+                    section->insertInt(0);
+                }
             }
 
             if (literal.value == -1)
@@ -75,7 +98,9 @@ void Section::out(std::ostream& out) {
 
 void Section::outRelocations(std::ostream& out) {
     for (const auto& r : relocations) {
-        out << r.section << " " << r.offset << " " << r.type << " " << r.symbol << " " << r.addend << "\n";
+        if (!r.symbol.empty()) {
+            out << r.section << " " << r.offset << " " << r.type << " " << r.symbol << " " << r.addend << "\n";
+        }
     }
 }
 

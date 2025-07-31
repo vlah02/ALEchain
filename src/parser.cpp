@@ -2028,7 +2028,7 @@ yyreduce:
 #line 354 "misc/parser.y"
                                  {
     section->add_instruction(0b1001, 0b0100, 0b0010);
-    section->add_instruction(0b1001, 0b0011, 0b0000, 0b1110, 0, 4);
+    section->add_instruction(0b1001, 0b0111, 0b0000, 0b1110, 0, 4);
     section->add_instruction(0b1001, 0b0011, 0b1111, 0b1110, 0, 4);
 }
 #line 2035 "src/parser.cpp"
