@@ -1,4 +1,3 @@
-.sections
 .my_handler
 10000001 11100000 00011111 11111100
 10000001 11100000 00101111 11111100
@@ -35,7 +34,6 @@
 
 .txt
 
-.symbols
 isr_software undefined strong notyp 1
 my_handler	72	1
 isr_terminal undefined strong notyp 1
@@ -53,13 +51,3 @@ my_handler	60	1
 my_handler	68	1
 my_handler	76	1
 handler defined strong notyp my_handler 0 0
-.relocations
-my_handler 16 ABS handle_timer 0
-my_handler 24 ABS handle_terminal 0
-my_handler 32 ABS handle_software 0
-my_handler 56 ABS isr_timer 0
-my_handler 60 ABS finish 0
-my_handler 64 ABS isr_terminal 0
-my_handler 68 ABS finish 0
-my_handler 72 ABS isr_software 0
-my_handler 76 ABS finish 0

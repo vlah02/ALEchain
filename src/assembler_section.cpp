@@ -5,7 +5,6 @@
 #include "../inc/assembler_symtab.hpp"
 
 std::unordered_map<std::string, Section*> Section::sections;
-std::vector<RelocationEntry> Section::relocations;
 
 void Section::add_instruction(unsigned char OC, unsigned char MOD, unsigned char RegA, unsigned char RegB, unsigned char RegC, signed short Disp) {
     // Print debug info before pushing
@@ -57,12 +56,9 @@ void Section::dumpPool() {
                     literal.value, section_name.c_str(), section->data.size());
                 section->insertInt(literal.value);
             } else if (!literal.symbol.empty()) {
-                // Any symbol, local or global, resolved or not—always put 0 and relocation!
+                // Any symbol, local or global, resolved or not—always put 0!
                 fprintf(stderr, "[POOL] insertInt(0) for symbol=%s at section=%s, offset=%zu\n",
                     literal.symbol.c_str(), section_name.c_str(), section->data.size());
-                Section::relocations.push_back(
-                    RelocationEntry(section_name, lineToReplace, "ABS", literal.symbol, literal.addend)
-                );
                 section->insertInt(0);
             }
 
@@ -85,14 +81,6 @@ void Section::out(std::ostream& out) {
         }
 
         out << std::string("\n");
-    }
-}
-
-void Section::outRelocations(std::ostream& out) {
-    for (const auto& r : relocations) {
-        if (!r.symbol.empty()) {
-            out << r.section << " " << r.offset << " " << r.type << " " << r.symbol << " " << r.addend << "\n";
-        }
     }
 }
 

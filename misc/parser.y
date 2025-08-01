@@ -331,9 +331,13 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
     section->add_instruction(0b1001, 0b0010, regs[$4], 0b1111);
     section->add_instruction(0b1001, 0b0010, regs[$4], regs[$4]);
 } | LOAD SYMBOL COMMA REGISTER terminate {
+    bool alt = (std::string($4) == "%r1");
+    unsigned char scratch = alt ? 2 : 1;
+    section->add_instruction(0b1000, 0b0001, 14, 0, scratch, -1);
     section->add_literal($2);
-    section->add_instruction(0b1001, 0b0010, regs[$4], 0b1111);
-    section->add_instruction(0b1001, 0b0010, regs[$4], regs[$4]);
+    section->add_instruction(0b1001, 0b0010, scratch, 15);
+    section->add_instruction(0b1001, 0b0010, regs[$4], scratch);
+    section->add_instruction(0b1001, 0b0011, scratch, 14, 0, 1); // pop scratch, %sp, 0, 1
 } | LOAD REGISTER COMMA REGISTER terminate {
     section->add_instruction(0b1001, 0b0001, regs[$4], regs[$2]);
 } | LOAD LBRACKET REGISTER RBRACKET COMMA REGISTER terminate {

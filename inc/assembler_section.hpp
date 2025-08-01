@@ -3,17 +3,6 @@
 #include <string>
 #include <unordered_map>
 
-struct RelocationEntry {
-    std::string section;    
-    int offset;             
-    std::string type;       
-    std::string symbol;     
-    int addend;             
-    RelocationEntry(const std::string& section, int offset, const std::string& type,
-                    const std::string& symbol, int addend = 0)
-        : section(section), offset(offset), type(type), symbol(symbol), addend(addend) {}
-};
-
 class Section {
 public:
     Section(std::string name) { this->name = name; }
@@ -31,11 +20,8 @@ public:
     std::vector<unsigned char> &getData() { return this->data; }
     static void dumpPool();
     static void out(std::ostream &out);
-    static void outRelocations(std::ostream& out);
     void insertInt(int number);
     void insertByte(int number);
-
-    static std::vector<RelocationEntry> relocations;
 
 private:
     struct literal {

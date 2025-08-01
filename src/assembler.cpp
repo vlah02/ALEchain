@@ -37,12 +37,8 @@ int main(int argc, char **argv) {
     output.open(outputName);
 
     Section::dumpPool();
-    output << ".sections\n";
     Section::out(output);
-    output << ".symbols\n";
     SymTab::out(output);
-    output << ".relocations\n";
-    Section::outRelocations(output);
 
     return 0;
 }
