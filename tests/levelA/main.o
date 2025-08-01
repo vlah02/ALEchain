@@ -104,31 +104,31 @@
 .txt
 
 mathSub undefined strong notyp 1
-my_code	80	1
+my_code	300	1
 handler undefined strong notyp 1
-my_code	4	1
+my_code	256	1
 value7 defined strong notyp my_data 24 1
-my_code	236	1
+my_code	364	1
 mathAdd undefined strong notyp 1
-my_code	56	1
+my_code	284	1
 value6 defined strong notyp my_data 20 2
-my_code	132	1
-my_code	220	1
+my_code	336	1
+my_code	360	1
 value4 defined strong notyp my_data 12 2
-my_code	84	1
-my_code	188	1
+my_code	304	1
+my_code	352	1
 value3 defined strong notyp my_data 8 2
-my_code	60	1
-my_code	172	1
+my_code	288	1
+my_code	348	1
 mathDiv undefined strong notyp 2
-my_code	104	1
-my_code	128	1
+my_code	316	1
+my_code	332	1
 value5 defined strong notyp my_data 16 2
-my_code	108	1
-my_code	204	1
+my_code	320	1
+my_code	356	1
 value2 defined strong notyp my_data 4 2
-my_code	36	1
-my_code	156	1
+my_code	272	1
+my_code	344	1
 value1 defined strong notyp my_data 0 1
-my_code	140	1
+my_code	340	1
 my_start defined strong notyp my_code 0 0

@@ -35,19 +35,19 @@
 .txt
 
 isr_software undefined strong notyp 1
-my_handler	72	1
+my_handler	120	1
 isr_terminal undefined strong notyp 1
-my_handler	64	1
+my_handler	112	1
 isr_timer undefined strong notyp 1
-my_handler	56	1
+my_handler	104	1
 handle_software local strong notyp my_handler 72 1
-my_handler	32	1
+my_handler	100	1
 handle_terminal local strong notyp my_handler 64 1
-my_handler	24	1
+my_handler	92	1
 handle_timer local strong notyp my_handler 56 1
-my_handler	16	1
+my_handler	84	1
 finish local strong notyp my_handler 36 3
-my_handler	60	1
-my_handler	68	1
-my_handler	76	1
+my_handler	108	1
+my_handler	116	1
+my_handler	124	1
 handler defined strong notyp my_handler 0 0

@@ -124,6 +124,7 @@ reglist: REGISTER {
 
 
 label: SYMBOL COLON terminate {
+    std::cerr << "Defining label: " << $1 << " at offset " << section->getSize() << std::endl;
     SymTab::add_definition($1, section->getName(), section->getSize());
 };
 

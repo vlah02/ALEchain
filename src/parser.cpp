@@ -649,13 +649,13 @@ static const yytype_int16 yyrline[] =
       68,    68,    68,    68,    68,    68,    68,    69,    69,    69,
       69,    69,    69,    69,    69,    69,    70,    70,    70,    72,
       74,    79,    81,    83,    88,    93,    98,   100,   102,   107,
-     112,   119,   121,   126,   130,   136,   140,   164,   170,   180,
-     184,   188,   192,   199,   203,   207,   210,   214,   217,   220,
-     223,   228,   231,   235,   238,   242,   245,   250,   254,   256,
-     258,   261,   264,   267,   271,   274,   277,   280,   284,   287,
-     291,   293,   300,   304,   307,   310,   312,   314,   316,   319,
-     323,   326,   329,   333,   341,   343,   345,   347,   350,   354,
-     358,   364,   367
+     112,   119,   121,   126,   131,   137,   141,   165,   171,   181,
+     185,   189,   193,   200,   204,   208,   211,   215,   218,   221,
+     224,   229,   232,   236,   239,   243,   246,   251,   255,   257,
+     259,   262,   265,   268,   272,   275,   278,   281,   285,   288,
+     292,   294,   301,   305,   308,   311,   313,   315,   317,   320,
+     324,   327,   330,   334,   342,   344,   346,   348,   351,   355,
+     359,   365,   368
 };
 #endif
 
@@ -1514,31 +1514,32 @@ yyreduce:
   case 63: /* label: SYMBOL COLON terminate  */
 #line 126 "misc/parser.y"
                               {
+    std::cerr << "Defining label: " << (yyvsp[-2].str) << " at offset " << section->getSize() << std::endl;
     SymTab::add_definition((yyvsp[-2].str), section->getName(), section->getSize());
 }
-#line 1520 "src/parser.cpp"
+#line 1521 "src/parser.cpp"
     break;
 
   case 64: /* global: dotGLOBAL symblist terminate  */
-#line 130 "misc/parser.y"
+#line 131 "misc/parser.y"
                                      {
     for (auto& symb : symblist)
         SymTab::globals.insert(symb);
     symblist.clear();
 }
-#line 1530 "src/parser.cpp"
+#line 1531 "src/parser.cpp"
     break;
 
   case 65: /* section: dotSECTION SYMBOL terminate  */
-#line 136 "misc/parser.y"
+#line 137 "misc/parser.y"
                                      {
     section = Section::extract((yyvsp[-1].str));
 }
-#line 1538 "src/parser.cpp"
+#line 1539 "src/parser.cpp"
     break;
 
   case 66: /* word: dotWORD vallist terminate  */
-#line 140 "misc/parser.y"
+#line 141 "misc/parser.y"
                                 {
     for (auto it = vallist.rbegin(); it != vallist.rend(); ++it) {
         if (it->second == valtype::INT) {
@@ -1562,21 +1563,21 @@ yyreduce:
     }
     vallist.clear();
 }
-#line 1566 "src/parser.cpp"
+#line 1567 "src/parser.cpp"
     break;
 
   case 67: /* skip: dotSKIP INTEGER terminate  */
-#line 164 "misc/parser.y"
+#line 165 "misc/parser.y"
                                 {
     for (int i = 0; i < toInt((yyvsp[-1].str)); i++) {
         section->insertByte(0);
     }
 }
-#line 1576 "src/parser.cpp"
+#line 1577 "src/parser.cpp"
     break;
 
   case 68: /* ascii: dotASCII STRING terminate  */
-#line 170 "misc/parser.y"
+#line 171 "misc/parser.y"
                                  {
     std::string raw((yyvsp[-1].str));
     if (!raw.empty() && raw.front() == '"' && raw.back() == '"') {
@@ -1586,387 +1587,387 @@ yyreduce:
         section->insertByte(static_cast<unsigned char>(c));
     }
 }
-#line 1590 "src/parser.cpp"
+#line 1591 "src/parser.cpp"
     break;
 
   case 69: /* equ: dotEQU SYMBOL COMMA COMMA terminate  */
-#line 180 "misc/parser.y"
+#line 181 "misc/parser.y"
                                          {
 
 }
-#line 1598 "src/parser.cpp"
+#line 1599 "src/parser.cpp"
     break;
 
   case 70: /* end: dotEND terminate  */
-#line 184 "misc/parser.y"
+#line 185 "misc/parser.y"
                       {
     YYABORT;
 }
-#line 1606 "src/parser.cpp"
+#line 1607 "src/parser.cpp"
     break;
 
   case 71: /* type: dotTYPE SYMBOL COMMA SYMBOL terminate  */
-#line 188 "misc/parser.y"
+#line 189 "misc/parser.y"
                                             {
     SymTab::add_type((yyvsp[-3].str), (yyvsp[-1].str));
 }
-#line 1614 "src/parser.cpp"
+#line 1615 "src/parser.cpp"
     break;
 
   case 72: /* weak: dotWEAK symblist terminate  */
-#line 192 "misc/parser.y"
+#line 193 "misc/parser.y"
                                  {
     for (auto& symb : symblist)
         SymTab::weaks.insert(symb);
     symblist.clear();
 }
-#line 1624 "src/parser.cpp"
+#line 1625 "src/parser.cpp"
     break;
 
   case 73: /* halt: HALT terminate  */
-#line 199 "misc/parser.y"
+#line 200 "misc/parser.y"
                      {
     section->add_instruction();
 }
-#line 1632 "src/parser.cpp"
+#line 1633 "src/parser.cpp"
     break;
 
   case 74: /* int: INTERRUPT terminate  */
-#line 203 "misc/parser.y"
+#line 204 "misc/parser.y"
                          {
     section->add_instruction(0b0001);
 }
-#line 1640 "src/parser.cpp"
+#line 1641 "src/parser.cpp"
     break;
 
   case 75: /* call: CALL SYMBOL terminate  */
-#line 207 "misc/parser.y"
+#line 208 "misc/parser.y"
                             {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b0010, 0b0001, 15);
 }
-#line 1649 "src/parser.cpp"
+#line 1650 "src/parser.cpp"
     break;
 
   case 76: /* call: CALL INTEGER terminate  */
-#line 210 "misc/parser.y"
+#line 211 "misc/parser.y"
                            {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b0010, 0b0001, 15);
 }
-#line 1658 "src/parser.cpp"
+#line 1659 "src/parser.cpp"
     break;
 
   case 77: /* jmp: JUMP SYMBOL terminate  */
-#line 214 "misc/parser.y"
+#line 215 "misc/parser.y"
                            {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b0011, 0b1000, 15);
 }
-#line 1667 "src/parser.cpp"
+#line 1668 "src/parser.cpp"
     break;
 
   case 78: /* jmp: JUMP INTEGER terminate  */
-#line 217 "misc/parser.y"
+#line 218 "misc/parser.y"
                            {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1000, 15);
 }
-#line 1676 "src/parser.cpp"
+#line 1677 "src/parser.cpp"
     break;
 
   case 79: /* jmp: JUMP SYMBOL PLUS INTEGER terminate  */
-#line 220 "misc/parser.y"
+#line 221 "misc/parser.y"
                                        {
     section->add_literal(std::string((yyvsp[-3].str)) + "+" + std::string((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1000, 15);
 }
-#line 1685 "src/parser.cpp"
+#line 1686 "src/parser.cpp"
     break;
 
   case 80: /* jmp: JUMP SYMBOL MINUS INTEGER terminate  */
-#line 223 "misc/parser.y"
+#line 224 "misc/parser.y"
                                         {
     section->add_literal(std::string((yyvsp[-3].str)) + "-" + std::string((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1000, 15);
 }
-#line 1694 "src/parser.cpp"
+#line 1695 "src/parser.cpp"
     break;
 
   case 81: /* beq: BRANCH_EQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate  */
-#line 228 "misc/parser.y"
+#line 229 "misc/parser.y"
                                                                  {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b0011, 0b1001, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1703 "src/parser.cpp"
+#line 1704 "src/parser.cpp"
     break;
 
   case 82: /* beq: BRANCH_EQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate  */
-#line 231 "misc/parser.y"
+#line 232 "misc/parser.y"
                                                                  {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1001, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1712 "src/parser.cpp"
+#line 1713 "src/parser.cpp"
     break;
 
   case 83: /* bne: BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate  */
-#line 235 "misc/parser.y"
+#line 236 "misc/parser.y"
                                                                     {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b0011, 0b1010, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1721 "src/parser.cpp"
+#line 1722 "src/parser.cpp"
     break;
 
   case 84: /* bne: BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate  */
-#line 238 "misc/parser.y"
+#line 239 "misc/parser.y"
                                                                     {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1010, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1730 "src/parser.cpp"
+#line 1731 "src/parser.cpp"
     break;
 
   case 85: /* bgt: BRANCH_GREATER REGISTER COMMA REGISTER COMMA SYMBOL terminate  */
-#line 242 "misc/parser.y"
+#line 243 "misc/parser.y"
                                                                    {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b0011, 0b1011, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1739 "src/parser.cpp"
+#line 1740 "src/parser.cpp"
     break;
 
   case 86: /* bgt: BRANCH_GREATER REGISTER COMMA REGISTER COMMA INTEGER terminate  */
-#line 245 "misc/parser.y"
+#line 246 "misc/parser.y"
                                                                    {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b0011, 0b1011, 15, regs[(yyvsp[-5].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1748 "src/parser.cpp"
+#line 1749 "src/parser.cpp"
     break;
 
   case 87: /* xchg: EXCHANGE REGISTER COMMA REGISTER terminate  */
-#line 250 "misc/parser.y"
+#line 251 "misc/parser.y"
                                                  {
     section->add_instruction(0b0100, 0b0000, 0, regs[(yyvsp[-3].str)], regs[(yyvsp[-1].str)]);
 }
-#line 1756 "src/parser.cpp"
+#line 1757 "src/parser.cpp"
     break;
 
   case 88: /* add: ADD REGISTER COMMA REGISTER terminate  */
-#line 254 "misc/parser.y"
+#line 255 "misc/parser.y"
                                            {
     section->add_instruction(0b0101, 0b0000, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1764 "src/parser.cpp"
+#line 1765 "src/parser.cpp"
     break;
 
   case 89: /* add: ADD REGISTER COMMA REGISTER GRGR INTEGER  */
-#line 256 "misc/parser.y"
+#line 257 "misc/parser.y"
                                              {
 
 }
-#line 1772 "src/parser.cpp"
+#line 1773 "src/parser.cpp"
     break;
 
   case 90: /* add: ADD REGISTER COMMA REGISTER LSLS INTEGER  */
-#line 258 "misc/parser.y"
+#line 259 "misc/parser.y"
                                              {
 
 }
-#line 1780 "src/parser.cpp"
+#line 1781 "src/parser.cpp"
     break;
 
   case 91: /* sub: SUBTRACT REGISTER COMMA REGISTER terminate  */
-#line 261 "misc/parser.y"
+#line 262 "misc/parser.y"
                                                 {
     section->add_instruction(0b0101, 0b0001, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1788 "src/parser.cpp"
+#line 1789 "src/parser.cpp"
     break;
 
   case 92: /* mul: MULTIPLY REGISTER COMMA REGISTER terminate  */
-#line 264 "misc/parser.y"
+#line 265 "misc/parser.y"
                                                 {
     section->add_instruction(0b0101, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1796 "src/parser.cpp"
+#line 1797 "src/parser.cpp"
     break;
 
   case 93: /* div: DIVIDE REGISTER COMMA REGISTER terminate  */
-#line 267 "misc/parser.y"
+#line 268 "misc/parser.y"
                                               {
     section->add_instruction(0b0101, 0b0011, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1804 "src/parser.cpp"
+#line 1805 "src/parser.cpp"
     break;
 
   case 94: /* not: NOT REGISTER terminate  */
-#line 271 "misc/parser.y"
+#line 272 "misc/parser.y"
                             {
     section->add_instruction(0b0110, 0b0000, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)]);
 }
-#line 1812 "src/parser.cpp"
+#line 1813 "src/parser.cpp"
     break;
 
   case 95: /* and: AND REGISTER COMMA REGISTER terminate  */
-#line 274 "misc/parser.y"
+#line 275 "misc/parser.y"
                                            {
     section->add_instruction(0b0110, 0b0001, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1820 "src/parser.cpp"
+#line 1821 "src/parser.cpp"
     break;
 
   case 96: /* or: OR REGISTER COMMA REGISTER terminate  */
-#line 277 "misc/parser.y"
+#line 278 "misc/parser.y"
                                          {
     section->add_instruction(0b0110, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1828 "src/parser.cpp"
+#line 1829 "src/parser.cpp"
     break;
 
   case 97: /* xor: XOR REGISTER COMMA REGISTER terminate  */
-#line 280 "misc/parser.y"
+#line 281 "misc/parser.y"
                                            {
     section->add_instruction(0b0110, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1836 "src/parser.cpp"
+#line 1837 "src/parser.cpp"
     break;
 
   case 98: /* shl: SHIFT_LEFT REGISTER COMMA REGISTER terminate  */
-#line 284 "misc/parser.y"
+#line 285 "misc/parser.y"
                                                   {
     section->add_instruction(0b0111, 0b0000, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1844 "src/parser.cpp"
+#line 1845 "src/parser.cpp"
     break;
 
   case 99: /* shr: SHIFT_RIGHT REGISTER COMMA REGISTER terminate  */
-#line 287 "misc/parser.y"
+#line 288 "misc/parser.y"
                                                    {
     section->add_instruction(0b0111, 0b0001, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1852 "src/parser.cpp"
+#line 1853 "src/parser.cpp"
     break;
 
   case 100: /* push: PUSH REGISTER terminate  */
-#line 291 "misc/parser.y"
+#line 292 "misc/parser.y"
                               {
     section->add_instruction(0b1000, 0b0001, 14, 0, regs[(yyvsp[-1].str)], -4);
 }
-#line 1860 "src/parser.cpp"
+#line 1861 "src/parser.cpp"
     break;
 
   case 101: /* push: PUSH LCBRACKET reglist RCBRACKET terminate  */
-#line 293 "misc/parser.y"
+#line 294 "misc/parser.y"
                                                {
     for (auto it = reglist.rbegin(); it != reglist.rend(); ++it) {
         section->add_instruction(0b1000, 0b0001, 14, 0, *it, -4);
     }
     reglist.clear();
 }
-#line 1871 "src/parser.cpp"
+#line 1872 "src/parser.cpp"
     break;
 
   case 102: /* pop: POP REGISTER terminate  */
-#line 300 "misc/parser.y"
+#line 301 "misc/parser.y"
                             {
     section->add_instruction(0b1001, 0b0011, regs[(yyvsp[-1].str)], 14, 0, 4);
 }
-#line 1879 "src/parser.cpp"
+#line 1880 "src/parser.cpp"
     break;
 
   case 103: /* st: STORE REGISTER COMMA INTEGER terminate  */
-#line 304 "misc/parser.y"
+#line 305 "misc/parser.y"
                                            {
     section->add_literal(toInt((yyvsp[-1].str)));
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[(yyvsp[-3].str)]);
 }
-#line 1888 "src/parser.cpp"
+#line 1889 "src/parser.cpp"
     break;
 
   case 104: /* st: STORE REGISTER COMMA SYMBOL terminate  */
-#line 307 "misc/parser.y"
+#line 308 "misc/parser.y"
                                           {
     section->add_literal((yyvsp[-1].str));
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[(yyvsp[-3].str)]);
 }
-#line 1897 "src/parser.cpp"
+#line 1898 "src/parser.cpp"
     break;
 
   case 105: /* st: STORE REGISTER COMMA REGISTER terminate  */
-#line 310 "misc/parser.y"
+#line 311 "misc/parser.y"
                                             {
     section->add_instruction(0b1001, 0b0001, regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1905 "src/parser.cpp"
+#line 1906 "src/parser.cpp"
     break;
 
   case 106: /* st: STORE REGISTER COMMA LBRACKET REGISTER RBRACKET terminate  */
-#line 312 "misc/parser.y"
+#line 313 "misc/parser.y"
                                                               {
     section->add_instruction(0b1000, 0b0000, regs[(yyvsp[-2].str)], 0, regs[(yyvsp[-5].str)]);
 }
-#line 1913 "src/parser.cpp"
+#line 1914 "src/parser.cpp"
     break;
 
   case 107: /* st: STORE REGISTER COMMA LBRACKET REGISTER PLUS INTEGER RBRACKET terminate  */
-#line 314 "misc/parser.y"
+#line 315 "misc/parser.y"
                                                                            {
     section->add_instruction(0b1000, 0b0000, regs[(yyvsp[-4].str)], 0, regs[(yyvsp[-7].str)], toInt((yyvsp[-2].str)));
 }
-#line 1921 "src/parser.cpp"
+#line 1922 "src/parser.cpp"
     break;
 
   case 108: /* st: STORE REGISTER COMMA LBRACKET REGISTER PLUS SYMBOL RBRACKET terminate  */
-#line 316 "misc/parser.y"
+#line 317 "misc/parser.y"
                                                                           {
     section->add_literal((yyvsp[-2].str));
     section->add_instruction(0b1000, 0b0000, regs[(yyvsp[-4].str)], 0, regs[(yyvsp[-7].str)]);
 }
-#line 1930 "src/parser.cpp"
+#line 1931 "src/parser.cpp"
     break;
 
   case 109: /* st: STORE REGISTER COMMA LBRACKET REGISTER PLUS REGISTER RBRACKET terminate  */
-#line 319 "misc/parser.y"
+#line 320 "misc/parser.y"
                                                                             {
     section->add_instruction(0b1000, 0b0000, regs[(yyvsp[-4].str)], regs[(yyvsp[-2].str)], regs[(yyvsp[-7].str)]);
 }
-#line 1938 "src/parser.cpp"
+#line 1939 "src/parser.cpp"
     break;
 
   case 110: /* ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate  */
-#line 323 "misc/parser.y"
+#line 324 "misc/parser.y"
                                                  {
     section->add_literal(toInt((yyvsp[-3].str)));
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], 15);
 }
-#line 1947 "src/parser.cpp"
+#line 1948 "src/parser.cpp"
     break;
 
   case 111: /* ld: LOAD DOLLAR SYMBOL COMMA REGISTER terminate  */
-#line 326 "misc/parser.y"
+#line 327 "misc/parser.y"
                                                 {
     section->add_literal((yyvsp[-3].str));
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], 15);
 }
-#line 1956 "src/parser.cpp"
+#line 1957 "src/parser.cpp"
     break;
 
   case 112: /* ld: LOAD INTEGER COMMA REGISTER terminate  */
-#line 329 "misc/parser.y"
+#line 330 "misc/parser.y"
                                           {
     section->add_literal(toInt((yyvsp[-3].str)));
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], 0b1111);
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-1].str)]);
 }
-#line 1966 "src/parser.cpp"
+#line 1967 "src/parser.cpp"
     break;
 
   case 113: /* ld: LOAD SYMBOL COMMA REGISTER terminate  */
-#line 333 "misc/parser.y"
+#line 334 "misc/parser.y"
                                          {
     bool alt = (std::string((yyvsp[-1].str)) == "%r1");
     unsigned char scratch = alt ? 2 : 1;
@@ -1976,86 +1977,86 @@ yyreduce:
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], scratch);
     section->add_instruction(0b1001, 0b0011, scratch, 14, 0, 1); // pop scratch, %sp, 0, 1
 }
-#line 1980 "src/parser.cpp"
+#line 1981 "src/parser.cpp"
     break;
 
   case 114: /* ld: LOAD REGISTER COMMA REGISTER terminate  */
-#line 341 "misc/parser.y"
+#line 342 "misc/parser.y"
                                            {
     section->add_instruction(0b1001, 0b0001, regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 1988 "src/parser.cpp"
+#line 1989 "src/parser.cpp"
     break;
 
   case 115: /* ld: LOAD LBRACKET REGISTER RBRACKET COMMA REGISTER terminate  */
-#line 343 "misc/parser.y"
+#line 344 "misc/parser.y"
                                                              {
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-4].str)]);
 }
-#line 1996 "src/parser.cpp"
+#line 1997 "src/parser.cpp"
     break;
 
   case 116: /* ld: LOAD LBRACKET REGISTER PLUS INTEGER RBRACKET COMMA REGISTER terminate  */
-#line 345 "misc/parser.y"
+#line 346 "misc/parser.y"
                                                                           {
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-6].str)], 0, toInt((yyvsp[-4].str)));
 }
-#line 2004 "src/parser.cpp"
+#line 2005 "src/parser.cpp"
     break;
 
   case 117: /* ld: LOAD LBRACKET REGISTER PLUS SYMBOL RBRACKET COMMA REGISTER terminate  */
-#line 347 "misc/parser.y"
+#line 348 "misc/parser.y"
                                                                          {
     SymTab::add_occurrence((yyvsp[-4].str), section->getName(), section->getSize(), false);
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-6].str)]);
 }
-#line 2013 "src/parser.cpp"
+#line 2014 "src/parser.cpp"
     break;
 
   case 118: /* ld: LOAD LBRACKET REGISTER PLUS REGISTER RBRACKET COMMA REGISTER terminate  */
-#line 350 "misc/parser.y"
+#line 351 "misc/parser.y"
                                                                            {
     section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-6].str)], regs[(yyvsp[-4].str)]);
 }
-#line 2021 "src/parser.cpp"
+#line 2022 "src/parser.cpp"
     break;
 
   case 119: /* ret: RETURN terminate  */
-#line 354 "misc/parser.y"
+#line 355 "misc/parser.y"
                       {
     section->add_instruction(0b1001, 0b0011, 15, 14, 0, 4);
 }
-#line 2029 "src/parser.cpp"
+#line 2030 "src/parser.cpp"
     break;
 
   case 120: /* iret: INTERRUPT_RETURN terminate  */
-#line 358 "misc/parser.y"
+#line 359 "misc/parser.y"
                                  {
     section->add_instruction(0b1001, 0b0100, 0b0010);
     section->add_instruction(0b1001, 0b0111, 0b0000, 0b1110, 0, 4);
     section->add_instruction(0b1001, 0b0011, 0b1111, 0b1110, 0, 4);
 }
-#line 2039 "src/parser.cpp"
+#line 2040 "src/parser.cpp"
     break;
 
   case 121: /* csrrd: CSRRD SYSTEM_REGISTER COMMA REGISTER terminate  */
-#line 364 "misc/parser.y"
+#line 365 "misc/parser.y"
                                                       {
     section->add_instruction(0b1001, 0b0000, regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 2047 "src/parser.cpp"
+#line 2048 "src/parser.cpp"
     break;
 
   case 122: /* csrwr: CSRWR REGISTER COMMA SYSTEM_REGISTER terminate  */
-#line 367 "misc/parser.y"
+#line 368 "misc/parser.y"
                                                       {
     section->add_instruction(0b1001, 0b0100, regs[(yyvsp[-1].str)], regs[(yyvsp[-3].str)]);
 }
-#line 2055 "src/parser.cpp"
+#line 2056 "src/parser.cpp"
     break;
 
 
-#line 2059 "src/parser.cpp"
+#line 2060 "src/parser.cpp"
 
       default: break;
     }
@@ -2248,7 +2249,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 371 "misc/parser.y"
+#line 372 "misc/parser.y"
 
 
 void yyerror(const char *s) {

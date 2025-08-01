@@ -1,4 +1,3 @@
-.sections
 .math
 10000001 11100000 00101111 11111100
 10010010 00011110 00000000 00001000
@@ -27,9 +26,7 @@
 
 .txt
 
-.symbols
 mathDiv defined strong notyp math 72 0
 mathMul defined strong notyp math 48 0
 mathSub defined strong notyp math 24 0
 mathAdd defined strong notyp math 0 0
-.relocations

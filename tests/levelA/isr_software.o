@@ -1,4 +1,3 @@
-.sections
 .isr
 10000001 11100000 00011111 11111100
 10000001 11100000 00101111 11111100
@@ -13,9 +12,6 @@
 
 .txt
 
-.symbols
 value1 undefined strong notyp 1
-isr	12	1
+isr	36	1
 isr_software defined strong notyp isr 0 0
-.relocations
-isr 12 ABS value1 0

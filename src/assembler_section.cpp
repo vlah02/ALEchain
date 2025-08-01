@@ -50,6 +50,9 @@ void Section::dumpPool() {
             section->data[lineToReplace + 3] = displacement & 0x0FF;
             section->data[lineToReplace + 2] |= displacement >> 8;
 
+            if (literal.value == -1)
+                SymTab::add_occurrence(literal.symbol, section_name, section->data.size());
+
             if (literal.value != -1) {
                 // Immediate integer literal
                 fprintf(stderr, "[POOL] insertInt(%ld) at section=%s, offset=%zu\n",
@@ -62,8 +65,6 @@ void Section::dumpPool() {
                 section->insertInt(0);
             }
 
-            if (literal.value == -1)
-                SymTab::add_occurrence(literal.symbol, section_name, literal.line);
         }
     }
 }
