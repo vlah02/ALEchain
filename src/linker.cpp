@@ -20,13 +20,12 @@ int main(int argc, char** argv) {
         } else if (arg == "-hex") {
             output_hex = true;
         } else if (arg.rfind("-place=", 0) == 0) {
-            // Format: -place=.section@0x1234
             auto at = arg.find('@');
             if (at == std::string::npos) {
                 std::cerr << "Invalid -place argument!\n";
                 return 2;
             }
-            std::string section = arg.substr(7, at - 7); // skip "-place="
+            std::string section = arg.substr(7, at - 7);
             std::string addrstr = arg.substr(at+1);
             long addr = std::stol(addrstr, nullptr, 0);
             placements.push_back({section, addr});
@@ -47,21 +46,9 @@ int main(int argc, char** argv) {
 
     // 3. Parse symbols/relocations
     LinkerSymTab::parse_symbols_and_relocations(input_files);
-    std::cout << "Loaded " << LinkerSymTab::relocations.size() << " relocations.\n";
-    for (const auto& rel : LinkerSymTab::relocations) {
-        std::cout << "Relocation: section=" << rel.section << " offset=" << rel.offset
-                  << " symbol=" << rel.symbol << " file=" << rel.file << "\n";
-    }
 
     // 4. Resolve symbol addresses
     LinkerSymTab::resolve_symbols();
-
-    // ------------------------------
-    // ADD THIS DEBUG PRINT HERE!
-    std::cout << "SYMBOL VALUES:\n";
-    for (const auto& [name, addr] : LinkerSymTab::symbol_values)
-        std::cout << "  " << name << " = " << addr << "\n";
-    // ------------------------------
 
     // 5. Patch relocations
     LinkerSymTab::apply_relocations();

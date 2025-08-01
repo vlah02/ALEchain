@@ -29,7 +29,6 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
         };
 
         while (true) {
-            // Use pending_line if present, otherwise read next line
             if (!pending_line.empty()) {
                 line = pending_line;
                 pending_line.clear();
@@ -37,7 +36,6 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                 break;
             }
             trim(line);
-            std::cout << "[DEBUG] Line: '" << line << "'" << std::endl;
 
             if (line.empty()) continue;
             if (line == ".symbols") {
@@ -60,7 +58,6 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                     entry.name = name;
                     entry.binding = binding;
                     if (binding == "defined") {
-                        // skip strength and notyp
                         std::string strength, notyp;
                         iss >> strength >> notyp
                             >> entry.section
@@ -68,18 +65,14 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                         entry.defined = true;
                         entry.file = fname;
                     } else {
-                        // undefined/local/global without real definition
                         std::string maybe_section;
                         iss >> maybe_section >> entry.offset;
                         entry.defined = false;
                         entry.file = "";
                     }
-                    // Only overwrite existing if this is a true definition
                     if (binding == "defined" || symbols.find(name) == symbols.end()) {
                         symbols[name] = entry;
                     }
-
-                    // Skip any occurrence lines until the next symbol or section header
                     while (std::getline(file, line)) {
                         trim(line);
                         if (line.empty()) continue;
@@ -94,15 +87,13 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                          || second == "local"
                          || second == "global"
                          || second == "undefined") {
-                            // This is actually the next symbol line
                             pending_line = line;
                             break;
                         }
-                        // else it's just an occurrence—skip it
+                        // else: it's just an occurrence, skip it
                     }
                     continue;
                 }
-                // otherwise, ignore non-symbol lines
             }
             else if (in_relocations) {
                 std::istringstream iss(line);
@@ -111,37 +102,18 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                 rel.file = fname;
                 relocations.push_back(rel);
             }
-            std::cout << "OUTSIDE!!!!" << std::endl;
-            // else: outside of symbols/relocations, ignore
         }
-    }
-
-    std::cout << "Loaded " << relocations.size() << " relocations.\n";
-    for (const auto& rel : relocations) {
-        std::cout << "Relocation: section=" << rel.section
-                  << " offset=" << rel.offset
-                  << " symbol=" << rel.symbol
-                  << " file=" << rel.file << "\n";
     }
 }
 
 void LinkerSymTab::resolve_symbols() {
     symbol_values.clear();
     for (auto& [name, entry] : symbols) {
-        // Add both "defined" and local symbols with section/offset info
         if ((entry.binding == "defined" || entry.binding == "local" || entry.binding == "global") && !entry.section.empty()) {
             long base = LinkerSections::get_section_base(entry.section);
             int file_offset = LinkerSections::get_offset(entry.section, entry.file);
             symbol_values[name] = base + file_offset + entry.offset;
         }
-    }
-    std::cout << "SYMBOL TABLE ENTRIES:\n";
-    for (auto& [name, entry] : symbols) {
-        std::cout << "  name=" << name << " binding=" << entry.binding
-                  << " section=" << entry.section
-                  << " offset=" << entry.offset
-                  << " file=" << entry.file
-                  << " defined=" << entry.defined << std::endl;
     }
 }
 
@@ -154,36 +126,14 @@ void LinkerSymTab::apply_relocations() {
         }
         auto& data = sec_it->second.data;
         int value = symbol_values.count(rel.symbol) ? symbol_values[rel.symbol] + rel.addend : rel.addend;
-
         int patch_offset = rel.offset + LinkerSections::get_offset(rel.section, rel.file);
-
-        std::cout << "[DEBUG] Reloc: " << rel.section << "@" << patch_offset << " = " << std::hex << value << std::dec << " (for symbol " << rel.symbol << " from file " << rel.file << ")\n";
-
         if (patch_offset + 3 < (int)data.size()) {
-            std::cout << "[DEBUG] Before patch: "
-                << std::hex
-                << (int)data[patch_offset] << " "
-                << (int)data[patch_offset+1] << " "
-                << (int)data[patch_offset+2] << " "
-                << (int)data[patch_offset+3] << std::dec << "\n";
             data[patch_offset + 0] = (value & 0xFF);
             data[patch_offset + 1] = (value >> 8) & 0xFF;
             data[patch_offset + 2] = (value >> 16) & 0xFF;
             data[patch_offset + 3] = (value >> 24) & 0xFF;
-            std::cout << "[DEBUG] After patch: "
-                << std::hex
-                << (int)data[patch_offset] << " "
-                << (int)data[patch_offset+1] << " "
-                << (int)data[patch_offset+2] << " "
-                << (int)data[patch_offset+3] << std::dec << "\n";
         } else {
             std::cerr << "Relocation patch out of bounds for " << rel.symbol << " at " << patch_offset << " (data size: " << data.size() << ")\n";
         }
-    }
-}
-
-void LinkerSymTab::output_symbols(std::ostream& out) {
-    for (const auto& [name, entry] : symbols) {
-        out << name << " " << entry.binding << " " << entry.section << " " << entry.offset << "\n";
     }
 }

@@ -37,7 +37,9 @@ int main(int argc, char **argv) {
     output.open(outputName);
 
     Section::dumpPool();
+    output << ".sections" << std::endl;
     Section::out(output);
+    output << ".symbols" << std::endl;
     SymTab::out(output);
 
     return 0;

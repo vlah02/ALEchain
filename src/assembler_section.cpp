@@ -5,6 +5,7 @@
 #include "../inc/assembler_symtab.hpp"
 
 std::unordered_map<std::string, Section*> Section::sections;
+static std::vector<std::string> section_order;
 
 void Section::add_instruction(unsigned char OC, unsigned char MOD, unsigned char RegA, unsigned char RegB, unsigned char RegC, signed short Disp) {
     // Print debug info before pushing
@@ -35,6 +36,7 @@ void Section::add_literal(int literal) {
 Section* Section::extract(const std::string& name) {
     if (sections.find(name) == sections.end()) {
         sections[name] = new Section(name);
+        section_order.push_back(name);
     }
     return sections[name];
 }
@@ -70,18 +72,15 @@ void Section::dumpPool() {
 }
 
 void Section::out(std::ostream& out) {
-    for (auto &pair : sections) {
-        Section &section = *pair.second;
-
-        out << std::string(".") << std::string(section.getName()) << std::string("\n");
-
+    for (const auto& section_name : section_order) {
+        Section& section = *sections[section_name];
+        out << "." << section.getName() << "\n";
         int i = 1;
         for (auto byte : section.data) {
             std::bitset<8> binary(byte);
-            out << binary.to_string() << (i++ % 4 ? std::string(" ") : std::string("\n"));
+            out << binary.to_string() << (i++ % 4 ? " " : "\n");
         }
-
-        out << std::string("\n");
+        out << "\n";
     }
 }
 
