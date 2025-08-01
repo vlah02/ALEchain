@@ -5,6 +5,9 @@
 #include <iomanip>
 #include <bitset>
 #include <algorithm>
+#include <cstdint>
+#include <map>
+#include <set>
 
 std::unordered_map<std::string, LinkerSection> LinkerSections::merged_sections;
 std::vector<std::string> LinkerSections::section_order;
@@ -140,50 +143,31 @@ long LinkerSections::get_section_base(const std::string& section) {
 }
 
 void LinkerSections::output_hex(std::ostream& out) {
-    // Collect all placed sections, sort by base_addr
-    struct SecRange {
-        std::string name;
-        long addr;
-        const std::vector<unsigned char> *data;
-    };
-    std::vector<SecRange> ranges;
+    // Gather all section bytes into a memory map
+    std::map<long, uint8_t> memory;
+    std::set<long> all_lines; // stores start addresses of lines to print
+
     for (const auto& sec_name : section_order) {
         const auto& sec = merged_sections[sec_name];
         if (sec.base_addr < 0 || sec.data.empty()) continue;
-        ranges.push_back({sec_name, sec.base_addr, &sec.data});
+        for (size_t i = 0; i < sec.data.size(); ++i) {
+            long addr = sec.base_addr + i;
+            memory[addr] = sec.data[i];
+            all_lines.insert(addr & ~0x7); // add the line for this byte
+        }
     }
-    std::sort(ranges.begin(), ranges.end(), [](const SecRange& a, const SecRange& b) {
-        return a.addr < b.addr;
-    });
 
-    const int line_bytes = 8;
-    for (const auto& r : ranges) {
-        long addr = r.addr;
-        size_t size = r.data->size();
-        const std::vector<unsigned char>& mem = *(r.data);
-
-        size_t i = 0;
-        while (i < size) {
-            out << std::hex << std::setw(8) << std::setfill('0') << (addr + i) << ":";
-            for (int j = 0; j < line_bytes && i + j < size; ++j)
-                out << " " << std::setw(2) << std::setfill('0') << (int)mem[i + j];
-            out << std::endl;
-            i += line_bytes;
+    // Print only lines that have any actual section byte
+    for (long line : all_lines) {
+        out << std::hex << std::setw(8) << std::setfill('0') << line << ":";
+        for (int j = 0; j < 8; ++j) {
+            long addr = line + j;
+            if (memory.count(addr))
+                out << " " << std::setw(2) << std::setfill('0') << (int)memory[addr];
+            else
+                out << " 00";
         }
-        // If the section doesn't end on an 8-byte boundary, pad the remainder up to next boundary
-        if (size % line_bytes != 0) {
-            long end_addr = addr + size;
-            int pad = line_bytes - (end_addr % line_bytes);
-            if (pad < line_bytes) {
-                out << std::hex << std::setw(8) << std::setfill('0') << (end_addr - (end_addr % line_bytes)) << ":";
-                int offset = end_addr % line_bytes;
-                for (int j = 0; j < offset; ++j)
-                    out << "   "; // already printed
-                for (int j = offset; j < line_bytes; ++j)
-                    out << " 00";
-                out << std::endl;
-            }
-        }
+        out << std::endl;
     }
 }
 
