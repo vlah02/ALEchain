@@ -1,1 +1,1 @@
-pop %r2
+ld $0xFFFFFEFE, %sp

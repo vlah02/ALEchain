@@ -52,26 +52,18 @@ void Section::dumpPool() {
             section->data[lineToReplace + 2] |= displacement >> 8;
 
             if (literal.value != -1) {
-                // This is a direct integer literal
+                // Immediate integer literal
                 fprintf(stderr, "[POOL] insertInt(%ld) at section=%s, offset=%zu\n",
                     literal.value, section_name.c_str(), section->data.size());
                 section->insertInt(literal.value);
             } else if (!literal.symbol.empty()) {
-                // This is a symbol (possibly with an addend)
-                auto def = SymTab::table.find(literal.symbol);
-                if (def != SymTab::table.end() && def->second->line != -1) {
-                    int value = def->second->line + literal.addend;
-                    fprintf(stderr, "[POOL] insertInt(symbol=%s value=%d addend=%d) at section=%s, offset=%zu\n",
-                        literal.symbol.c_str(), value, literal.addend, section_name.c_str(), section->data.size());
-                    section->insertInt(value);
-                } else {
-                    fprintf(stderr, "[POOL] insertInt(0) for undefined symbol=%s at section=%s, offset=%zu\n",
-                        literal.symbol.c_str(), section_name.c_str(), section->data.size());
-                    Section::relocations.push_back(
-                        RelocationEntry(section_name, lineToReplace, "ABS", literal.symbol, literal.addend)
-                    );
-                    section->insertInt(0);
-                }
+                // Any symbol, local or global, resolved or not—always put 0 and relocation!
+                fprintf(stderr, "[POOL] insertInt(0) for symbol=%s at section=%s, offset=%zu\n",
+                    literal.symbol.c_str(), section_name.c_str(), section->data.size());
+                Section::relocations.push_back(
+                    RelocationEntry(section_name, lineToReplace, "ABS", literal.symbol, literal.addend)
+                );
+                section->insertInt(0);
             }
 
             if (literal.value == -1)
