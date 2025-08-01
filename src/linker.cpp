@@ -50,8 +50,19 @@ int main(int argc, char** argv) {
     // 4. Resolve symbol addresses
     LinkerSymTab::resolve_symbols();
 
+    for (const auto& occ : Occurrence::all_occurrences) {
+        if (occ.section == "my_handler") {
+            std::cerr << "[OCC] symbol=" << occ.symbol
+                      << " offset=" << occ.offset
+                      << " file=" << occ.file
+                      << " section=" << occ.section    // <--- Add this!
+                      << " inPool=" << occ.inPool << "\n";
+        }
+    }
+    LinkerSymTab::patch_occurrences();
+
     // 5. Patch relocations
-    LinkerSymTab::apply_relocations();
+    //LinkerSymTab::apply_relocations();
 
     // 6. Output
     std::ofstream out(output_file);

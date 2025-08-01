@@ -23,4 +23,15 @@ struct LinkerSymTab {
     static void parse_symbols_and_relocations(const std::vector<std::string>& filenames);
     static void resolve_symbols();
     static void apply_relocations();
+    static void patch_occurrences();
+};
+
+struct Occurrence {
+    std::string symbol;
+    std::string section;
+    std::string file;
+    int offset;
+    bool inPool;
+
+    static std::vector<Occurrence> all_occurrences;
 };

@@ -57,14 +57,23 @@ void Section::dumpPool() {
 
             if (literal.value != -1) {
                 // Immediate integer literal
-                fprintf(stderr, "[POOL] insertInt(%ld) at section=%s, offset=%zu\n",
-                    literal.value, section_name.c_str(), section->data.size());
                 section->insertInt(literal.value);
             } else if (!literal.symbol.empty()) {
-                // Any symbol, local or global, resolved or not—always put 0!
-                fprintf(stderr, "[POOL] insertInt(0) for symbol=%s at section=%s, offset=%zu\n",
-                    literal.symbol.c_str(), section_name.c_str(), section->data.size());
-                section->insertInt(0);
+                // Try to resolve symbol
+                auto symEntryIt = SymTab::table.find(literal.symbol);
+                if (symEntryIt != SymTab::table.end() && symEntryIt->second->line != -1) {
+                    // Symbol defined: resolve to section offset
+                    int symbolOffset = symEntryIt->second->line;
+                    // Optional: you might need to add the section base if your format requires it
+                    section->insertInt(symbolOffset + literal.addend); // or just symbolOffset
+                    fprintf(stderr, "[POOL] insertInt(%d) for LOCAL symbol=%s at section=%s, offset=%zu\n",
+                            symbolOffset, literal.symbol.c_str(), section_name.c_str(), section->data.size());
+                } else {
+                    // Undefined/external symbol
+                    section->insertInt(0);
+                    fprintf(stderr, "[POOL] insertInt(0) for EXTERNAL symbol=%s at section=%s, offset=%zu\n",
+                            literal.symbol.c_str(), section_name.c_str(), section->data.size());
+                }
             }
 
         }

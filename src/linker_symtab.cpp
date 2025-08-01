@@ -8,6 +8,7 @@
 std::unordered_map<std::string, SymbolEntry> LinkerSymTab::symbols;
 std::vector<RelocationEntry> LinkerSymTab::relocations;
 std::unordered_map<std::string, int> LinkerSymTab::symbol_values;
+std::vector<Occurrence> Occurrence::all_occurrences;
 
 void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>& filenames) {
     symbols.clear();
@@ -81,16 +82,30 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                             break;
                         }
                         std::istringstream peek(line);
-                        std::string first, second;
-                        peek >> first >> second;
+                        std::string first, second, third;
+                        peek >> first >> second >> third;
                         if (second == "defined"
-                         || second == "local"
-                         || second == "global"
-                         || second == "undefined") {
+                            || second == "local"
+                            || second == "global"
+                            || second == "undefined") {
                             pending_line = line;
                             break;
-                        }
-                        // else: it's just an occurrence, skip it
+                            }
+                        // Here it's an occurrence line!
+                        // Format: <section> <offset> <inPool>
+                        std::istringstream occiss(line);
+                        std::string sec;
+                        int off;
+                        int inPoolInt = 0;
+                        occiss >> sec >> off >> inPoolInt;
+
+                        Occurrence occ;
+                        occ.symbol = name; // symbol name from above
+                        occ.section = sec;
+                        occ.file = fname;
+                        occ.offset = off;
+                        occ.inPool = (inPoolInt != 0);
+                        Occurrence::all_occurrences.push_back(occ);
                     }
                     continue;
                 }
@@ -134,6 +149,23 @@ void LinkerSymTab::apply_relocations() {
             data[patch_offset + 3] = (value >> 24) & 0xFF;
         } else {
             std::cerr << "Relocation patch out of bounds for " << rel.symbol << " at " << patch_offset << " (data size: " << data.size() << ")\n";
+        }
+    }
+}
+
+void LinkerSymTab::patch_occurrences() {
+    for (const auto& occ : Occurrence::all_occurrences) {
+        if (!symbol_values.count(occ.symbol)) continue;
+        int value = symbol_values[occ.symbol];
+        auto sec_it = LinkerSections::merged_sections.find(occ.section);
+        if (sec_it == LinkerSections::merged_sections.end()) continue;
+        auto& data = sec_it->second.data;
+        int patch_offset = occ.offset + LinkerSections::get_offset(occ.section, occ.file);
+        if (patch_offset + 3 < (int)data.size()) {
+            data[patch_offset + 0] = (value & 0xFF);
+            data[patch_offset + 1] = (value >> 8) & 0xFF;
+            data[patch_offset + 2] = (value >> 16) & 0xFF;
+            data[patch_offset + 3] = (value >> 24) & 0xFF;
         }
     }
 }
