@@ -339,7 +339,7 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
 } | LOAD LBRACKET REGISTER RBRACKET COMMA REGISTER terminate {
     section->add_instruction(0b1001, 0b0010, regs[$6], regs[$3]);
 } | LOAD LBRACKET REGISTER PLUS INTEGER RBRACKET COMMA REGISTER terminate {
-    section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3], toInt($5));
+    section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3], 0, toInt($5));
 } | LOAD LBRACKET REGISTER PLUS SYMBOL RBRACKET COMMA REGISTER terminate {
     SymTab::add_occurrence($5, section->getName(), section->getSize(), false);
     section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3]);

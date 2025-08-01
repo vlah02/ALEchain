@@ -1994,7 +1994,7 @@ yyreduce:
   case 116: /* ld: LOAD LBRACKET REGISTER PLUS INTEGER RBRACKET COMMA REGISTER terminate  */
 #line 341 "misc/parser.y"
                                                                           {
-    section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-6].str)], toInt((yyvsp[-4].str)));
+    section->add_instruction(0b1001, 0b0010, regs[(yyvsp[-1].str)], regs[(yyvsp[-6].str)], 0, toInt((yyvsp[-4].str)));
 }
 #line 2000 "src/parser.cpp"
     break;
