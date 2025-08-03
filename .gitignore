@@ -10,6 +10,6 @@ src/parser.cpp
 tests/levelA/*.o
 tests/levelA/*.hex
 
-./assembler
-./linker
-./emulator
+assembler
+linker
+emulator
