@@ -85,6 +85,12 @@ build CMakeFiles/SS.dir/src/linker.cpp.o: CXX_COMPILER__SS_unscanned_Debug /home
   OBJECT_DIR = CMakeFiles/SS.dir
   OBJECT_FILE_DIR = CMakeFiles/SS.dir/src
 
+build CMakeFiles/SS.dir/src/emulator.cpp.o: CXX_COMPILER__SS_unscanned_Debug /home/marko/Documents/Projects/SS/src/emulator.cpp || cmake_object_order_depends_target_SS
+  DEP_FILE = CMakeFiles/SS.dir/src/emulator.cpp.o.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/SS.dir
+  OBJECT_FILE_DIR = CMakeFiles/SS.dir/src
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target SS
@@ -93,7 +99,7 @@ build CMakeFiles/SS.dir/src/linker.cpp.o: CXX_COMPILER__SS_unscanned_Debug /home
 #############################################
 # Link the executable SS
 
-build SS: CXX_EXECUTABLE_LINKER__SS_Debug CMakeFiles/SS.dir/src/assembler_section.cpp.o CMakeFiles/SS.dir/src/assembler_symtab.cpp.o CMakeFiles/SS.dir/src/assembler.cpp.o CMakeFiles/SS.dir/src/linker_section.cpp.o CMakeFiles/SS.dir/src/linker_symtab.cpp.o CMakeFiles/SS.dir/src/linker.cpp.o
+build SS: CXX_EXECUTABLE_LINKER__SS_Debug CMakeFiles/SS.dir/src/assembler_section.cpp.o CMakeFiles/SS.dir/src/assembler_symtab.cpp.o CMakeFiles/SS.dir/src/assembler.cpp.o CMakeFiles/SS.dir/src/linker_section.cpp.o CMakeFiles/SS.dir/src/linker_symtab.cpp.o CMakeFiles/SS.dir/src/linker.cpp.o CMakeFiles/SS.dir/src/emulator.cpp.o
   DEP_FILE = CMakeFiles/SS.dir/link.d
   FLAGS = -g
   LINK_FLAGS = -Wl,--dependency-file=CMakeFiles/SS.dir/link.d

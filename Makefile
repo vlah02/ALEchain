@@ -1,3 +1,6 @@
+emulator:
+	g++ -o emulator src/emulator.cpp
+
 linker:
 	g++ -o linker src/linker.cpp src/linker_section.cpp src/linker_symtab.cpp
 

@@ -14,4 +14,6 @@ add_executable(SS
         src/linker_section.cpp
         inc/linker_symtab.hpp
         src/linker_symtab.cpp
-        src/linker.cpp)
+        src/linker.cpp
+        inc/emulator.hpp
+        src/emulator.cpp)
