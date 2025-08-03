@@ -8,7 +8,7 @@
 std::unordered_map<std::string, SymbolEntry> LinkerSymTab::symbols;
 std::vector<RelocationEntry> LinkerSymTab::relocations;
 std::unordered_map<std::string, int> LinkerSymTab::symbol_values;
-std::vector<Occurrence> Occurrence::all_occurrences;
+std::vector<Occurrence> LinkerSymTab::occurrences;
 
 void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>& filenames) {
     symbols.clear();
@@ -103,7 +103,7 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                         occ.file = fname;
                         occ.offset = off;
                         occ.inPool = (inPoolInt != 0);
-                        Occurrence::all_occurrences.push_back(occ);
+                        LinkerSymTab::occurrences.push_back(occ);
                     }
                     continue;
                 }
@@ -152,7 +152,7 @@ void LinkerSymTab::apply_relocations() {
 }
 
 void LinkerSymTab::patch_occurrences() {
-    for (const auto& occ : Occurrence::all_occurrences) {
+    for (const auto& occ : LinkerSymTab::occurrences) {
         if (!symbol_values.count(occ.symbol)) continue;
         int value = symbol_values[occ.symbol];
         auto sec_it = LinkerSections::merged_sections.find(occ.section);

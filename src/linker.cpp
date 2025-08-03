@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     LinkerSymTab::parse_symbols_and_relocations(input_files);
     LinkerSymTab::resolve_symbols();
 
-    for (const auto& occ : Occurrence::all_occurrences) {
+    for (const auto& occ : LinkerSymTab::occurrences) {
         if (occ.section == "my_handler") {
             std::cerr << "[OCC] symbol=" << occ.symbol
                       << " offset=" << occ.offset
