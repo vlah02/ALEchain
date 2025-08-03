@@ -44,9 +44,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
-
-
-// flex --header-file=inc/lexer.hpp -o src/lexer.cpp misc/lexer.l
-// bison -d -o src/parser.cpp misc/parser.y
-// g++ -o assembler src/assembler.cpp src/assembler_section.cpp src/assembler_symtab.cpp src/lexer.cpp src/parser.cpp

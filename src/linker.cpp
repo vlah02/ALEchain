@@ -5,8 +5,6 @@
 #include "../inc/linker_section.hpp"
 #include "../inc/linker_symtab.hpp"
 
-// Usage: ./linker -hex -o out.hex [-place=.section@0x1234] input1.o input2.o ...
-
 int main(int argc, char** argv) {
     std::string output_file = "linked.hex";
     std::vector<std::string> input_files;
@@ -38,16 +36,9 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // 1. Load sections
     LinkerSections::load_sections(input_files);
-
-    // 2. Merge sections with placements (Level B)
     LinkerSections::merge_sections(placements);
-
-    // 3. Parse symbols/relocations
     LinkerSymTab::parse_symbols_and_relocations(input_files);
-
-    // 4. Resolve symbol addresses
     LinkerSymTab::resolve_symbols();
 
     for (const auto& occ : Occurrence::all_occurrences) {
@@ -55,16 +46,12 @@ int main(int argc, char** argv) {
             std::cerr << "[OCC] symbol=" << occ.symbol
                       << " offset=" << occ.offset
                       << " file=" << occ.file
-                      << " section=" << occ.section    // <--- Add this!
+                      << " section=" << occ.section
                       << " inPool=" << occ.inPool << "\n";
         }
     }
     LinkerSymTab::patch_occurrences();
 
-    // 5. Patch relocations
-    //LinkerSymTab::apply_relocations();
-
-    // 6. Output
     std::ofstream out(output_file);
     if (output_hex)
         LinkerSections::output_hex(out);

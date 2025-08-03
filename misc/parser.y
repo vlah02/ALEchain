@@ -338,7 +338,7 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
     section->add_literal($2);
     section->add_instruction(0b1001, 0b0010, scratch, 15);
     section->add_instruction(0b1001, 0b0010, regs[$4], scratch);
-    section->add_instruction(0b1001, 0b0011, scratch, 14, 0, 1); // pop scratch, %sp, 0, 1
+    section->add_instruction(0b1001, 0b0011, scratch, 14, 0, 1);
 } | LOAD REGISTER COMMA REGISTER terminate {
     section->add_instruction(0b1001, 0b0001, regs[$4], regs[$2]);
 } | LOAD LBRACKET REGISTER RBRACKET COMMA REGISTER terminate {
@@ -376,7 +376,7 @@ void yyerror(const char *s) {
 }
 
 long toInt(const std::string &str) {
-    int base = 10; // default base
+    int base = 10;
     int start = 0;
     bool isNegative = false;
 
@@ -388,13 +388,13 @@ long toInt(const std::string &str) {
     if (str[start] == '0' && start + 1 < str.length()) {
         char nextChar = tolower(str[start + 1]);
         if (nextChar == 'x') {
-            base = 16; // hexadecimal
+            base = 16;
             start += 2;
         } else if (nextChar == 'o') {
-            base = 8; // octal
+            base = 8;
             start += 2;
         } else if (nextChar == 'b') {
-            base = 2; // binary
+            base = 2;
             start += 2;
         }
     }
@@ -405,16 +405,14 @@ long toInt(const std::string &str) {
         char c = tolower(str[i]);
         int digit = 0;
 
-        // Handle conversion of digits or letters based on base
         if (isdigit(c)) {
             digit = c - '0';
         } else if (isalpha(c)) {
-            digit = c - 'a' + 10; // convert a-f to 10-15
+            digit = c - 'a' + 10;
         } else {
             throw std::invalid_argument("Invalid character in input string");
         }
 
-        // Check if digit is valid for the current base
         if (digit >= base) {
             throw std::invalid_argument("Digit out of range for base");
         }

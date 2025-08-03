@@ -8,20 +8,16 @@ std::unordered_map<std::string, Section*> Section::sections;
 static std::vector<std::string> section_order;
 
 void Section::add_instruction(unsigned char OC, unsigned char MOD, unsigned char RegA, unsigned char RegB, unsigned char RegC, signed short Disp) {
-    // Print debug info before pushing
     fprintf(stderr, "add_instruction: OC=0x%X MOD=0x%X RegA=0x%X RegB=0x%X RegC=0x%X Disp=%d | Offset=%zu\n",
         OC, MOD, RegA, RegB, RegC, Disp, data.size());
 
-    // Show next instruction address (helps match reference)
     fprintf(stderr, "   Will emit at instruction index %zu\n", data.size() / 4);
 
-    // Actually emit
     this->data.push_back(OC << 4 | MOD & 0x0F);
     this->data.push_back(RegA << 4 | RegB & 0x0F);
     this->data.push_back(RegC << 4 | (Disp >> 8) & 0x0F);
     this->data.push_back(Disp & 0xFF);
 
-    // Optionally print raw bytes
     fprintf(stderr, "   Bytes: %02X %02X %02X %02X\n", data[data.size()-4], data[data.size()-3], data[data.size()-2], data[data.size()-1]);
 }
 
@@ -56,20 +52,15 @@ void Section::dumpPool() {
                 SymTab::add_occurrence(literal.symbol, section_name, section->data.size());
 
             if (literal.value != -1) {
-                // Immediate integer literal
                 section->insertInt(literal.value);
             } else if (!literal.symbol.empty()) {
-                // Try to resolve symbol
                 auto symEntryIt = SymTab::table.find(literal.symbol);
                 if (symEntryIt != SymTab::table.end() && symEntryIt->second->line != -1) {
-                    // Symbol defined: resolve to section offset
                     int symbolOffset = symEntryIt->second->line;
-                    // Optional: you might need to add the section base if your format requires it
-                    section->insertInt(symbolOffset + literal.addend); // or just symbolOffset
+                    section->insertInt(symbolOffset + literal.addend);
                     fprintf(stderr, "[POOL] insertInt(%d) for LOCAL symbol=%s at section=%s, offset=%zu\n",
                             symbolOffset, literal.symbol.c_str(), section_name.c_str(), section->data.size());
                 } else {
-                    // Undefined/external symbol
                     section->insertInt(0);
                     fprintf(stderr, "[POOL] insertInt(0) for EXTERNAL symbol=%s at section=%s, offset=%zu\n",
                             literal.symbol.c_str(), section_name.c_str(), section->data.size());

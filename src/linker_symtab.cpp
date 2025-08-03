@@ -91,8 +91,6 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                             pending_line = line;
                             break;
                             }
-                        // Here it's an occurrence line!
-                        // Format: <section> <offset> <inPool>
                         std::istringstream occiss(line);
                         std::string sec;
                         int off;
@@ -100,7 +98,7 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                         occiss >> sec >> off >> inPoolInt;
 
                         Occurrence occ;
-                        occ.symbol = name; // symbol name from above
+                        occ.symbol = name;
                         occ.section = sec;
                         occ.file = fname;
                         occ.offset = off;

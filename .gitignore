@@ -1,0 +1,15 @@
+cmake-build-*/
+.idea/
+
+inc/lexer.hpp
+inc/parser.hpp
+
+src/lexer.cpp
+src/parser.cpp
+
+tests/levelA/*.o
+tests/levelA/*.hex
+
+./assembler
+./linker
+./emulator

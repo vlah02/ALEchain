@@ -43,11 +43,9 @@ void LinkerSections::load_sections(const std::vector<std::string>& filenames)
             exit(1);
         }
         std::string line;
-        // Go to .sections block
         while (std::getline(file, line)) {
             if (line == ".sections") break;
         }
-        // Read sections until .symbols or EOF
         while (std::getline(file, line)) {
             if (line == ".symbols" || line.empty()) break;
             if (line[0] == '.') {
@@ -67,35 +65,27 @@ void LinkerSections::merge_sections(const std::vector<std::pair<std::string, lon
     for (const auto& p : placements)
         explicit_placement[p.first] = p.second;
 
-    // For debug
     std::cerr << "Section order: ";
     for (auto& secname : section_order) {
         std::cerr << secname << "(" << merged_sections[secname].data.size() << ") ";
     }
     std::cerr << std::endl;
 
-    // Track where the next "free" byte in memory is.
     long current_addr = 0;
     for (auto& secname : section_order) {
         auto& sec = merged_sections[secname];
 
         if (sec.data.empty()) {
-            sec.base_addr = -1; // skip empty sections
+            sec.base_addr = -1;
             continue;
         }
 
-        // If section is explicitly placed
         if (explicit_placement.count(secname)) {
             sec.base_addr = explicit_placement[secname];
-            current_addr = sec.base_addr + sec.data.size(); // move forward
+            current_addr = sec.base_addr + sec.data.size();
         } else {
-            // Not explicitly placed: place at the next available address (current_addr)
-            // But, make sure not to overlap with any future explicit placement
-            // Find next explicit placement address (if any)
             long next_explicit = -1;
             for (const auto& [ename, eaddr] : explicit_placement) {
-                // Only consider explicit placements that come after this section in section_order
-                // and whose address is after or equal to current_addr
                 auto pos_cur = std::find(section_order.begin(), section_order.end(), secname);
                 auto pos_exp = std::find(section_order.begin(), section_order.end(), ename);
                 if (pos_exp != section_order.end() && pos_exp > pos_cur && eaddr >= current_addr) {
@@ -104,7 +94,6 @@ void LinkerSections::merge_sections(const std::vector<std::pair<std::string, lon
                     }
                 }
             }
-            // If there is a next explicit section and placing this section would overlap, pad forward
             if (next_explicit != -1 && current_addr + (long)sec.data.size() > next_explicit) {
                 current_addr = next_explicit;
             }
@@ -113,7 +102,6 @@ void LinkerSections::merge_sections(const std::vector<std::pair<std::string, lon
         }
     }
 
-    // Optional: check for overlaps (just in case)
     std::vector<std::pair<long, long>> ranges;
     for (auto& secname : section_order) {
         auto& sec = merged_sections[secname];
@@ -143,9 +131,8 @@ long LinkerSections::get_section_base(const std::string& section) {
 }
 
 void LinkerSections::output_hex(std::ostream& out) {
-    // Gather all section bytes into a memory map
     std::map<long, uint8_t> memory;
-    std::set<long> all_lines; // stores start addresses of lines to print
+    std::set<long> all_lines;
 
     for (const auto& sec_name : section_order) {
         const auto& sec = merged_sections[sec_name];
@@ -153,11 +140,10 @@ void LinkerSections::output_hex(std::ostream& out) {
         for (size_t i = 0; i < sec.data.size(); ++i) {
             long addr = sec.base_addr + i;
             memory[addr] = sec.data[i];
-            all_lines.insert(addr & ~0x7); // add the line for this byte
+            all_lines.insert(addr & ~0x7);
         }
     }
 
-    // Print only lines that have any actual section byte
     for (long line : all_lines) {
         out << std::hex << std::setw(8) << std::setfill('0') << line << ":";
         for (int j = 0; j < 8; ++j) {
