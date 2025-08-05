@@ -48,8 +48,8 @@ void Section::dumpPool() {
             section->data[lineToReplace + 3] = displacement & 0x0FF;
             section->data[lineToReplace + 2] |= displacement >> 8;
 
-            if (literal.value == -1)
-                SymTab::add_occurrence(literal.symbol, section_name, section->data.size());
+            if (!literal.symbol.empty())
+                SymTab::add_occurrence(literal.symbol, section_name, section->data.size(), /*inPool=*/true);
 
             if (literal.value != -1) {
                 section->insertInt(literal.value);

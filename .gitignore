@@ -9,6 +9,8 @@ src/parser.cpp
 
 tests/levelA/*.o
 tests/levelA/*.hex
+tests/levelB/*.o
+tests/levelB/*.hex
 
 assembler
 linker

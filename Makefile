@@ -35,3 +35,15 @@ levela: assembler linker emulator
 		-o tests/levelA/program.hex \
 		tests/levelA/handler.o tests/levelA/math.o tests/levelA/main.o tests/levelA/isr_terminal.o tests/levelA/isr_timer.o tests/levelA/isr_software.o
 	./emulator tests/levelA/program.hex
+
+levelb: assembler linker emulator
+	rm -f tests/levelB/*.o
+	./assembler -o tests/levelB/main.o tests/levelB/main.s
+	./assembler -o tests/levelB/handler.o tests/levelB/handler.s
+	./assembler -o tests/levelB/isr_terminal.o tests/levelB/isr_terminal.s
+	./assembler -o tests/levelB/isr_timer.o tests/levelB/isr_timer.s
+	./linker -hex \
+    	-place=my_code@0x40000000 \
+    	-o tests/levelB/program.hex \
+		tests/levelB/main.o tests/levelB/isr_terminal.o tests/levelB/isr_timer.o tests/levelB/handler.o
+	./emulator tests/levelB/program.hex

@@ -1,17 +1,24 @@
+#include <cstdint>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <cstring>
+#include <vector>
+#include <termios.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "../inc/emulator.hpp"
 
 constexpr uint32_t PC_START = 0x40000000;
 constexpr uint32_t SP_REG = 14;
 constexpr uint32_t PC_REG = 15;
-
 constexpr uint32_t STATUS = 0;
 constexpr uint32_t HANDLER = 1;
 constexpr uint32_t CAUSE = 2;
+
+constexpr uint32_t TERM_OUT = 0xFFFFFF00;
+constexpr uint32_t TERM_IN  = 0xFFFFFF04;
 
 #define REG(x) ((x) == 0 ? 0 : regs[x])
 
@@ -20,6 +27,27 @@ Emulator::Emulator() {
     memset(regs, 0, sizeof(regs));
     memset(csr, 0, sizeof(csr));
     regs[PC_REG] = PC_START;
+    setup_terminal();
+}
+
+Emulator::~Emulator() {
+    restore_terminal();
+}
+
+void Emulator::setup_terminal() {
+    if (terminal_initialized) return;
+    tcgetattr(STDIN_FILENO, &orig_term);
+    struct termios new_term = orig_term;
+    new_term.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_term);
+    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+    terminal_initialized = true;
+}
+
+void Emulator::restore_terminal() {
+    if (terminal_initialized)
+        tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
 }
 
 void Emulator::load_memory(const std::string& hex_filename) {
@@ -41,41 +69,44 @@ void Emulator::load_memory(const std::string& hex_filename) {
             mem[addr + i] = (uint8_t)byte;
         }
     }
-    uint32_t base = PC_START;
-    std::cout << "First 16 bytes at " << std::hex << base << ":\n";
-    for (int i = 0; i < 16; ++i) {
-        printf("%02x ", mem[base + i]);
+}
+
+void Emulator::poll_terminal_input() {
+    int c = getchar();
+    if (c != EOF) {
+        term_in_value = (uint8_t)c;
+        csr[CAUSE] = 3;
     }
-    std::cout << std::endl;
 }
 
 uint32_t Emulator::load32(uint32_t address) {
-    uint32_t ret = 0;
-    for (int i = 0; i < 4; ++i) {
-        ret |= (mem[address + i] << (i * 8));
+    if (address == TERM_IN) {
+        uint32_t value = term_in_value;
+        term_in_value = 0;
+        return value;
+    } else {
+        uint32_t ret = 0;
+        for (int i = 0; i < 4; ++i) {
+            ret |= (mem[address + i] << (i * 8));
+        }
+        return ret;
     }
-    return ret;
 }
 
 void Emulator::store32(uint32_t address, uint32_t value) {
+    if (address == TERM_OUT) {
+        std::cout << (char)(value & 0xFF) << std::flush;
+        return;
+    }
     mem[address + 0] = value & 0xFF;
     mem[address + 1] = (value >> 8) & 0xFF;
     mem[address + 2] = (value >> 16) & 0xFF;
     mem[address + 3] = (value >> 24) & 0xFF;
 }
 
-void Emulator::decode(uint32_t pc, uint8_t& op, uint8_t& mod, uint8_t& ra, uint8_t& rb, uint8_t& rc, int16_t& displacement) {
-    op  = (mem[pc + 0] & 0xF0) >> 4;
-    mod = (mem[pc + 0] & 0x0F);
-    ra  = (mem[pc + 1] & 0xF0) >> 4;
-    rb  = (mem[pc + 1] & 0x0F);
-    rc  = (mem[pc + 2] & 0xF0) >> 4;
-    displacement = ((mem[pc + 2] & 0x0F) << 8) | mem[pc + 3];
-    if (displacement & 0x800)
-        displacement |= 0xF000;
-}
-
 bool Emulator::execute_instruction() {
+    poll_terminal_input();
+
     uint32_t pc = regs[PC_REG];
     uint8_t op, mod, regA, regB, regC;
     int16_t disp;
@@ -87,8 +118,6 @@ bool Emulator::execute_instruction() {
     regC = (mem[pc + 2] & 0xF0) >> 4;
     disp = ((mem[pc + 2] & 0x0F) << 8) | mem[pc + 3];
     if (disp & 0x800) disp |= 0xF000;
-
-    printf("PC=0x%08x op=%x mod=%x a=%x b=%x c=%x disp=%d\n", pc, op, mod, regA, regB, regC, disp);
 
     if (op != 0)
         regs[PC_REG] += 4;
@@ -230,6 +259,18 @@ bool Emulator::execute_instruction() {
     }
     regs[0] = 0;
 
+    if ((csr[CAUSE] == 2 || csr[CAUSE] == 3) && (csr[STATUS] & (1 << 2)) == 0) {
+        if (csr[CAUSE] == 2 && (csr[STATUS] & 1) != 0) return false;
+        if (csr[CAUSE] == 3 && (csr[STATUS] & (1 << 1)) != 0) return false;
+
+        regs[SP_REG] -= 4;
+        store32(regs[SP_REG], regs[PC_REG]);
+        regs[SP_REG] -= 4;
+        store32(regs[SP_REG], csr[STATUS]);
+        csr[STATUS] |= (1 << 2);
+        regs[PC_REG] = csr[HANDLER];
+    }
+
     return false;
 }
 
@@ -238,7 +279,7 @@ void Emulator::run() {
         if (execute_instruction())
             break;
     }
-    std::cout << "Emulated processor executed halt instruction\n";
+    std::cout << "\nEmulated processor executed halt instruction\n";
     print_state();
 }
 

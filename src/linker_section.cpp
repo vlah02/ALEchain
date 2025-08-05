@@ -115,6 +115,12 @@ void LinkerSections::merge_sections(const std::vector<std::pair<std::string, lon
             exit(2);
         }
     }
+    for (auto& secname : section_order) {
+        auto& sec = merged_sections[secname];
+        std::cerr << "[DEBUG] Section: " << secname
+                  << " base=0x" << std::hex << sec.base_addr
+                  << " size=" << std::dec << sec.data.size() << std::endl;
+    }
 }
 
 int LinkerSections::get_offset(const std::string& section, const std::string& file) {

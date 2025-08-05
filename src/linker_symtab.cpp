@@ -58,7 +58,7 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                     SymbolEntry entry;
                     entry.name = name;
                     entry.binding = binding;
-                    if (binding == "defined") {
+                    if (binding == "defined" || binding == "local" || binding == "global") {
                         std::string strength, notyp;
                         iss >> strength >> notyp
                             >> entry.section
@@ -74,6 +74,10 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                     if (binding == "defined" || symbols.find(name) == symbols.end()) {
                         symbols[name] = entry;
                     }
+
+                    std::cerr << "[DEBUG][SYMBOL] name='" << name << "' binding='" << binding
+                              << "' section='" << entry.section << "' offset=" << entry.offset << std::endl;
+
                     while (std::getline(file, line)) {
                         trim(line);
                         if (line.empty()) continue;
@@ -90,7 +94,7 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                             || second == "undefined") {
                             pending_line = line;
                             break;
-                            }
+                        }
                         std::istringstream occiss(line);
                         std::string sec;
                         int off;
@@ -128,42 +132,49 @@ void LinkerSymTab::resolve_symbols() {
             symbol_values[name] = base + file_offset + entry.offset;
         }
     }
-}
-
-void LinkerSymTab::apply_relocations() {
-    for (const auto& rel : relocations) {
-        auto sec_it = LinkerSections::merged_sections.find(rel.section);
-        if (sec_it == LinkerSections::merged_sections.end()) {
-            std::cerr << "Section not found: " << rel.section << std::endl;
-            continue;
-        }
-        auto& data = sec_it->second.data;
-        int value = symbol_values.count(rel.symbol) ? symbol_values[rel.symbol] + rel.addend : rel.addend;
-        int patch_offset = rel.offset + LinkerSections::get_offset(rel.section, rel.file);
-        if (patch_offset + 3 < (int)data.size()) {
-            data[patch_offset + 0] = (value & 0xFF);
-            data[patch_offset + 1] = (value >> 8) & 0xFF;
-            data[patch_offset + 2] = (value >> 16) & 0xFF;
-            data[patch_offset + 3] = (value >> 24) & 0xFF;
-        } else {
-            std::cerr << "Relocation patch out of bounds for " << rel.symbol << " at " << patch_offset << " (data size: " << data.size() << ")\n";
-        }
+    std::cerr << "[DEBUG][SYMBOL_VALUES]\n";
+    for (const auto& [name, val] : symbol_values) {
+        std::cerr << "  '" << name << "' = 0x" << std::hex << val << std::endl;
     }
 }
 
 void LinkerSymTab::patch_occurrences() {
     for (const auto& occ : LinkerSymTab::occurrences) {
-        if (!symbol_values.count(occ.symbol)) continue;
+        if (!symbol_values.count(occ.symbol)) {
+            std::cerr << "[SKIP] Occurrence: " << occ.symbol << " not found in symbol values!\n";
+            continue;
+        }
         int value = symbol_values[occ.symbol];
         auto sec_it = LinkerSections::merged_sections.find(occ.section);
-        if (sec_it == LinkerSections::merged_sections.end()) continue;
+        if (sec_it == LinkerSections::merged_sections.end()) {
+            std::cerr << "[SKIP] Section not found for occurrence: " << occ.section << "\n";
+            continue;
+        }
         auto& data = sec_it->second.data;
         int patch_offset = occ.offset + LinkerSections::get_offset(occ.section, occ.file);
+
+        std::cerr << "[PATCH_OCC] "
+                  << "symbol='" << occ.symbol << "' "
+                  << "section='" << occ.section << "' "
+                  << "file='" << occ.file << "' "
+                  << "offset_in_section=" << occ.offset << " "
+                  << "resolved_addr=0x" << std::hex << value << " "
+                  << "patch_offset=0x" << std::hex << patch_offset
+                  << std::dec << "\n";
         if (patch_offset + 3 < (int)data.size()) {
+            int oldval = data[patch_offset] | (data[patch_offset+1] << 8)
+                       | (data[patch_offset+2] << 16) | (data[patch_offset+3] << 24);
+            std::cerr << "    Old value at patch: 0x" << std::hex << oldval << std::dec << "\n";
             data[patch_offset + 0] = (value & 0xFF);
             data[patch_offset + 1] = (value >> 8) & 0xFF;
             data[patch_offset + 2] = (value >> 16) & 0xFF;
             data[patch_offset + 3] = (value >> 24) & 0xFF;
+            int newval = data[patch_offset] | (data[patch_offset+1] << 8)
+                       | (data[patch_offset+2] << 16) | (data[patch_offset+3] << 24);
+            std::cerr << "    New value at patch: 0x" << std::hex << newval << std::dec << "\n";
+        } else {
+            std::cerr << "[ERROR] Patch offset out of range for symbol '" << occ.symbol
+                      << "' at offset " << patch_offset << " (data size: " << data.size() << ")\n";
         }
     }
 }

@@ -6,19 +6,27 @@
 class Emulator {
 public:
     Emulator();
-    void load_memory(const std::string& hex_filename);
-    uint32_t load32(uint32_t address);
-    void run();
+    ~Emulator();
 
+    void load_memory(const std::string& hex_filename);
+    void run();
     void print_state();
 
 private:
     bool execute_instruction();
+    uint32_t load32(uint32_t address);
     void store32(uint32_t address, uint32_t value);
-    void decode(uint32_t instr, uint8_t& OC, uint8_t& MOD, uint8_t& regA, uint8_t& regB, uint8_t& regC, int16_t& disp);
+    void poll_terminal_input();
+
+    uint32_t term_in_value = 0;
 
     uint32_t regs[16];
     uint32_t csr[3];
 
     std::vector<uint8_t> mem;
+
+    termios orig_term;
+    void setup_terminal();
+    void restore_terminal();
+    bool terminal_initialized = false;
 };

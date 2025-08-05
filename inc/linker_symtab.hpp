@@ -32,6 +32,5 @@ struct LinkerSymTab {
 
     static void parse_symbols_and_relocations(const std::vector<std::string>& filenames);
     static void resolve_symbols();
-    static void apply_relocations();
     static void patch_occurrences();
 };
