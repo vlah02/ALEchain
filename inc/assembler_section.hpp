@@ -9,8 +9,8 @@ public:
 
     void add_instruction(unsigned char OC = 0, unsigned char MOD = 0, unsigned char RegA = 0,
                          unsigned char RegB = 0, unsigned char RegC = 0, signed short Disp = 0);
-    void add_literal(const std::string& literal, int addend = 0);
-    void add_literal(int literal);
+    void add_literal(const std::string& literal, int addend = 0, bool patchInPlace = false);
+    void add_literal(int literal, bool patchInPlace = false);
 
     static Section* extract(const std::string& name);
 
@@ -29,8 +29,9 @@ private:
         long value;
         std::string symbol;
         int addend;
-        literal(unsigned long line, long value, const std::string& symbol, int addend = 0)
-            : line(line), value(value), symbol(symbol), addend(addend) {}
+        bool patchInPlace;
+        literal(unsigned long line, long value, const std::string& symbol, int addend = 0, bool patch = false)
+            : line(line), value(value), symbol(symbol), addend(addend), patchInPlace(patch) {}
     };
 
     std::string name;

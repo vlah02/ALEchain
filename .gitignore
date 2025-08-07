@@ -11,6 +11,8 @@ tests/levelA/*.o
 tests/levelA/*.hex
 tests/levelB/*.o
 tests/levelB/*.hex
+tests/levelC/*.o
+tests/levelC/*.hex
 
 assembler
 linker

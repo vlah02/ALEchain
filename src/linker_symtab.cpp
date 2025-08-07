@@ -63,6 +63,7 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                         iss >> strength >> notyp
                             >> entry.section
                             >> entry.offset;
+                        if (entry.section == "ABS") entry.section = "";
                         entry.defined = true;
                         entry.file = fname;
                     } else {
@@ -126,10 +127,14 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
 void LinkerSymTab::resolve_symbols() {
     symbol_values.clear();
     for (auto& [name, entry] : symbols) {
-        if ((entry.binding == "defined" || entry.binding == "local" || entry.binding == "global") && !entry.section.empty()) {
-            long base = LinkerSections::get_section_base(entry.section);
-            int file_offset = LinkerSections::get_offset(entry.section, entry.file);
-            symbol_values[name] = base + file_offset + entry.offset;
+        if ((entry.binding == "defined" || entry.binding == "local" || entry.binding == "global")) {
+            if (entry.section.empty() || LinkerSections::merged_sections.find(entry.section) == LinkerSections::merged_sections.end()) {
+                symbol_values[name] = entry.offset;
+            } else {
+                long base = LinkerSections::get_section_base(entry.section);
+                int file_offset = LinkerSections::get_offset(entry.section, entry.file);
+                symbol_values[name] = base + file_offset + entry.offset;
+            }
         }
     }
     std::cerr << "[DEBUG][SYMBOL_VALUES]\n";

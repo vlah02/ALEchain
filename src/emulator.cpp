@@ -8,6 +8,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <chrono>
 #include "../inc/emulator.hpp"
 
 constexpr uint32_t PC_START = 0x40000000;
@@ -19,8 +20,23 @@ constexpr uint32_t CAUSE = 2;
 
 constexpr uint32_t TERM_OUT = 0xFFFFFF00;
 constexpr uint32_t TERM_IN  = 0xFFFFFF04;
+constexpr uint32_t TIM_CFG  = 0xFFFFFF10;
 
 #define REG(x) ((x) == 0 ? 0 : regs[x])
+
+uint32_t Emulator::get_timer_period_ms(uint32_t cfg) {
+    switch (cfg & 0x7) {
+        case 0: return 500;
+        case 1: return 1000;
+        case 2: return 1500;
+        case 3: return 2000;
+        case 4: return 5000;
+        case 5: return 10000;
+        case 6: return 30000;
+        case 7: return 60000;
+        default: return 500;
+    }
+}
 
 Emulator::Emulator() {
     mem.resize(1ULL << 32, 0);
@@ -28,6 +44,9 @@ Emulator::Emulator() {
     memset(csr, 0, sizeof(csr));
     regs[PC_REG] = PC_START;
     setup_terminal();
+
+    timer_cfg_value = 0;
+    timer_last = std::chrono::steady_clock::now();
 }
 
 Emulator::~Emulator() {
@@ -84,18 +103,25 @@ uint32_t Emulator::load32(uint32_t address) {
         uint32_t value = term_in_value;
         term_in_value = 0;
         return value;
-    } else {
-        uint32_t ret = 0;
-        for (int i = 0; i < 4; ++i) {
-            ret |= (mem[address + i] << (i * 8));
-        }
-        return ret;
     }
+    if (address == TIM_CFG) {
+        return timer_cfg_value;
+    }
+    uint32_t ret = 0;
+    for (int i = 0; i < 4; ++i) {
+        ret |= (mem[address + i] << (i * 8));
+    }
+    return ret;
 }
 
 void Emulator::store32(uint32_t address, uint32_t value) {
     if (address == TERM_OUT) {
         std::cout << (char)(value & 0xFF) << std::flush;
+        return;
+    }
+    if (address == TIM_CFG) {
+        timer_cfg_value = value;
+        timer_last = std::chrono::steady_clock::now();
         return;
     }
     mem[address + 0] = value & 0xFF;
@@ -106,6 +132,16 @@ void Emulator::store32(uint32_t address, uint32_t value) {
 
 bool Emulator::execute_instruction() {
     poll_terminal_input();
+
+    if (timer_cfg_value <= 7) {
+        auto now = std::chrono::steady_clock::now();
+        uint32_t period_ms = get_timer_period_ms(timer_cfg_value);
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - timer_last).count();
+        if (elapsed >= period_ms) {
+            csr[CAUSE] = 2;
+            timer_last = now;
+        }
+    }
 
     uint32_t pc = regs[PC_REG];
     uint8_t op, mod, regA, regB, regC;

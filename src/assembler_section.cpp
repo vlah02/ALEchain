@@ -21,12 +21,13 @@ void Section::add_instruction(unsigned char OC, unsigned char MOD, unsigned char
     fprintf(stderr, "   Bytes: %02X %02X %02X %02X\n", data[data.size()-4], data[data.size()-3], data[data.size()-2], data[data.size()-1]);
 }
 
-void Section::add_literal(const std::string& literal, int addend) {
-    pool.push_back({data.size(), -1, literal, addend});
+void Section::add_literal(const std::string& literal, int addend, bool patchInPlace) {
+    fprintf(stderr, "add_literal(sym='%s', addend=%d, patchInPlace=%d)\n", literal.c_str(), addend, patchInPlace);
+    pool.push_back({data.size(), -1, literal, addend, patchInPlace});
 }
-
-void Section::add_literal(int literal) {
-    pool.push_back({data.size(), literal, ""});
+void Section::add_literal(int literal, bool patchInPlace) {
+    fprintf(stderr, "add_literal(val=%d, patchInPlace=%d)\n", literal, patchInPlace);
+    pool.push_back({data.size(), literal, "", 0, patchInPlace});
 }
 
 Section* Section::extract(const std::string& name) {
@@ -38,11 +39,14 @@ Section* Section::extract(const std::string& name) {
 }
 
 void Section::dumpPool() {
+    SymTab::resolve_pending_equs();
+
     for (auto& pair : sections) {
         auto section = pair.second;
         auto section_name = pair.first;
         for (auto& literal : section->pool) {
             int lineToReplace = literal.line;
+
             int literalLine = section->data.size();
             int displacement = literalLine - lineToReplace - 4;
             section->data[lineToReplace + 3] = displacement & 0x0FF;
@@ -55,18 +59,26 @@ void Section::dumpPool() {
                 section->insertInt(literal.value);
             } else if (!literal.symbol.empty()) {
                 auto symEntryIt = SymTab::table.find(literal.symbol);
+                int valueToInsert = 0;
                 if (symEntryIt != SymTab::table.end() && symEntryIt->second->line != -1) {
-                    int symbolOffset = symEntryIt->second->line;
-                    section->insertInt(symbolOffset + literal.addend);
+                    valueToInsert = symEntryIt->second->line + literal.addend;
+                    if (literal.patchInPlace) {
+                        section->data[lineToReplace + 2] = (valueToInsert >> 8) & 0x0F | (section->data[lineToReplace + 2] & 0xF0);
+                        section->data[lineToReplace + 3] = valueToInsert & 0xFF;
+                    }
+                    section->insertInt(valueToInsert);
                     fprintf(stderr, "[POOL] insertInt(%d) for LOCAL symbol=%s at section=%s, offset=%zu\n",
-                            symbolOffset, literal.symbol.c_str(), section_name.c_str(), section->data.size());
+                            valueToInsert, literal.symbol.c_str(), section_name.c_str(), section->data.size());
                 } else {
+                    if (literal.patchInPlace) {
+                        section->data[lineToReplace + 2] = 0;
+                        section->data[lineToReplace + 3] = 0;
+                    }
                     section->insertInt(0);
                     fprintf(stderr, "[POOL] insertInt(0) for EXTERNAL symbol=%s at section=%s, offset=%zu\n",
                             literal.symbol.c_str(), section_name.c_str(), section->data.size());
                 }
             }
-
         }
     }
 }

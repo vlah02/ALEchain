@@ -9,6 +9,9 @@ public:
     static void add_definition(const std::string& name, const std::string& section, int line);
     static void add_occurrence(const std::string& name, const std::string& section, int line, bool inPool = true);
     static void add_type(const std::string& symbol, const std::string& type);
+    static void resolve_pending_equs();
+    static long value_of(const std::string& name);
+    static long get_label_value_if_known(const std::string& name);
     static void out(std::ostream& os);
 
     struct symOccurrence {
@@ -21,9 +24,18 @@ public:
         int line = -1;
         std::vector<symOccurrence> occurences;
     };
+    struct EquEntry {
+        enum class Op { ADD, SUB };
+        std::string dst;
+        std::string lhs;
+        std::string rhs;
+        Op op;
+    };
 
     static std::unordered_map<std::string, symDefinition*> table;
     static std::unordered_set<std::string> globals;
     static std::unordered_set<std::string> weaks;
     static std::unordered_map<std::string, std::string> types;
+    static std::unordered_map<std::string, long> equs;
+    static std::vector<EquEntry> pending_equs;
 };

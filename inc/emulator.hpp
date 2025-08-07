@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <termios.h>
+#include <chrono>
 
 class Emulator {
 public:
@@ -19,14 +21,17 @@ private:
     void poll_terminal_input();
 
     uint32_t term_in_value = 0;
-
     uint32_t regs[16];
     uint32_t csr[3];
-
     std::vector<uint8_t> mem;
+
+    uint32_t timer_cfg_value = 0;
+    std::chrono::steady_clock::time_point timer_last;
 
     termios orig_term;
     void setup_terminal();
     void restore_terminal();
     bool terminal_initialized = false;
+
+    uint32_t get_timer_period_ms(uint32_t cfg);
 };

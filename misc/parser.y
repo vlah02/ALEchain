@@ -4,6 +4,7 @@
 #include <cctype>
 #include <stdexcept>
 #include <unordered_map>
+#include <limits>
 
 #include "../inc/lexer.hpp"
 #include "../inc/assembler_section.hpp"
@@ -14,6 +15,32 @@ unsigned char word[8] = {};
 Section *section = Section::extract("txt");
 
 long toInt(const std::string &str);
+
+long tryResolveEqu(const std::string& name) {
+    auto plus = name.find('+');
+    auto minus = name.find('-');
+    std::string base = name;
+    int addend = 0;
+    if (plus != std::string::npos) {
+        addend = std::stoi(name.substr(plus + 1));
+        base = name.substr(0, plus);
+    } else if (minus != std::string::npos) {
+        addend = -std::stoi(name.substr(minus + 1));
+        base = name.substr(0, minus);
+    }
+    if (SymTab::equs.count(base))
+        return SymTab::equs[base] + addend;
+    return std::numeric_limits<long>::min();
+}
+
+void addSymbolOrEquLiteral(Section* section, const std::string& sym) {
+    long equVal = tryResolveEqu(sym);
+    if (equVal != std::numeric_limits<long>::min()) {
+        section->add_literal((int)equVal, true);
+    } else {
+        section->add_literal(sym, 0, false);
+    }
+}
 
 std::unordered_map<std::string, unsigned short> regs = {
         {"%r0",      0b0000},
@@ -61,7 +88,6 @@ std::vector<unsigned short> reglist;
 %token<str> PLUS MINUS STAR SLASH COLON DOLLAR LBRACKET LCBRACKET RBRACKET RCBRACKET COMMA GRGR LSLS
 %token<str> CATCH_ERROR
 
-
 %%
 program: | program line | program NEWLINE ;
 line: label | instruction | label instruction | directive | label directive | terminate;
@@ -75,46 +101,33 @@ symblist: SYMBOL {
     symblist.push_back($1);
 };
 
-vallist:
-    SYMBOL
-        { vallist.push_back({ $1, valtype::SYM }); }
-  | INTEGER
-        { vallist.push_back({ $1, valtype::INT }); }
-  | MINUS INTEGER
-        {
-            std::string lit = "-" + std::string($2);
-            vallist.push_back({ lit, valtype::INT });
-        }
-  | SYMBOL PLUS INTEGER
-        {
-            std::string lit = std::string($1) + "+" + std::string($3);
-            vallist.push_back({ lit, valtype::SYM });
-        }
-  | SYMBOL MINUS INTEGER
-        {
-            std::string lit = std::string($1) + "-" + std::string($3);
-            vallist.push_back({ lit, valtype::SYM });
-        }
-  | vallist COMMA SYMBOL
-        { vallist.push_back({ $3, valtype::SYM }); }
-  | vallist COMMA INTEGER
-        { vallist.push_back({ $3, valtype::INT }); }
-  | vallist COMMA MINUS INTEGER
-        {
-            std::string lit = "-" + std::string($3);
-            vallist.push_back({ lit, valtype::INT });
-        }
-  | vallist COMMA SYMBOL PLUS INTEGER
-        {
-            std::string lit = std::string($3) + "+" + std::string($5);
-            vallist.push_back({ lit, valtype::SYM });
-        }
-  | vallist COMMA SYMBOL MINUS INTEGER
-        {
-            std::string lit = std::string($3) + "-" + std::string($5);
-            vallist.push_back({ lit, valtype::SYM });
-        }
-;
+vallist: SYMBOL {
+    vallist.push_back({ $1, valtype::SYM });
+} | INTEGER {
+    vallist.push_back({ $1, valtype::INT });
+} | MINUS INTEGER {
+    std::string lit = "-" + std::string($2);
+    vallist.push_back({ lit, valtype::INT });
+} | SYMBOL PLUS INTEGER {
+    std::string lit = std::string($1) + "+" + std::string($3);
+    vallist.push_back({ lit, valtype::SYM });
+} | SYMBOL MINUS INTEGER {
+    std::string lit = std::string($1) + "-" + std::string($3);
+    vallist.push_back({ lit, valtype::SYM });
+} | vallist COMMA SYMBOL {
+    vallist.push_back({ $3, valtype::SYM });
+} | vallist COMMA INTEGER {
+    vallist.push_back({ $3, valtype::INT });
+} | vallist COMMA MINUS INTEGER {
+    std::string lit = "-" + std::string($3);
+    vallist.push_back({ lit, valtype::INT });
+} | vallist COMMA SYMBOL PLUS INTEGER {
+    std::string lit = std::string($3) + "+" + std::string($5);
+    vallist.push_back({ lit, valtype::SYM });
+} | vallist COMMA SYMBOL MINUS INTEGER {
+    std::string lit = std::string($3) + "-" + std::string($5);
+    vallist.push_back({ lit, valtype::SYM });
+};
 
 reglist: REGISTER {
     reglist.push_back(regs[$1]);
@@ -143,20 +156,25 @@ word: dotWORD vallist terminate {
         if (it->second == valtype::INT) {
             section->insertInt(toInt(it->first));
         } else if (it->second == valtype::SYM) {
-            std::string name = it->first;
-            int addend = 0;
-            auto plus = name.find('+');
-            auto minus = name.find('-');
-            if (plus != std::string::npos) {
-                addend = std::stoi(name.substr(plus + 1));
-                name = name.substr(0, plus);
-            } else if (minus != std::string::npos) {
-                addend = -std::stoi(name.substr(minus + 1));
-                name = name.substr(0, minus);
+            long equVal = tryResolveEqu(it->first);
+            if (equVal != std::numeric_limits<long>::min()) {
+                section->insertInt(equVal);
+            } else {
+                std::string name = it->first;
+                int addend = 0;
+                auto plus = name.find('+');
+                auto minus = name.find('-');
+                if (plus != std::string::npos) {
+                    addend = std::stoi(name.substr(plus + 1));
+                    name = name.substr(0, plus);
+                } else if (minus != std::string::npos) {
+                    addend = -std::stoi(name.substr(minus + 1));
+                    name = name.substr(0, minus);
+                }
+                section->add_literal(name, addend);
+                section->insertInt(-1);
+                SymTab::add_occurrence(name, section->getName(), section->getSize());
             }
-            section->add_literal(name, addend);
-            section->insertInt(-1);
-            SymTab::add_occurrence(name, section->getName(), section->getSize());
         }
     }
     vallist.clear();
@@ -178,8 +196,19 @@ ascii: dotASCII STRING terminate {
     }
 };
 
-equ: dotEQU SYMBOL COMMA COMMA terminate {
-
+equ: dotEQU SYMBOL COMMA INTEGER terminate {
+    SymTab::equs[$2] = toInt($4);
+    if (SymTab::globals.count($2)) {
+        SymTab::add_definition($2, "", SymTab::equs[$2]);
+    }
+} | dotEQU SYMBOL COMMA SYMBOL MINUS SYMBOL terminate {
+    SymTab::pending_equs.push_back(
+        SymTab::EquEntry{ std::string($2), std::string($4), std::string($6), SymTab::EquEntry::Op::SUB }
+    );
+} | dotEQU SYMBOL COMMA SYMBOL PLUS SYMBOL terminate {
+    SymTab::pending_equs.push_back(
+        SymTab::EquEntry{ std::string($2), std::string($4), std::string($6), SymTab::EquEntry::Op::ADD }
+    );
 };
 
 end: dotEND terminate {
@@ -196,7 +225,6 @@ weak: dotWEAK symblist terminate {
     symblist.clear();
 };
 
-
 halt: HALT terminate {
     section->add_instruction();
 };
@@ -206,42 +234,42 @@ int: INTERRUPT terminate {
 };
 
 call: CALL SYMBOL terminate {
-    section->add_literal($2);
+    addSymbolOrEquLiteral(section, $2);
     section->add_instruction(0b0010, 0b0001, 15);
 } | CALL INTEGER terminate {
     section->add_literal(toInt($2));
     section->add_instruction(0b0010, 0b0001, 15);
 }
 jmp: JUMP SYMBOL terminate {
-    section->add_literal($2);
+    addSymbolOrEquLiteral(section, $2);
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP INTEGER terminate {
     section->add_literal(toInt($2));
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP SYMBOL PLUS INTEGER terminate {
-    section->add_literal(std::string($2) + "+" + std::string($4));
+    addSymbolOrEquLiteral(section, std::string($2) + "+" + std::string($4));
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP SYMBOL MINUS INTEGER terminate {
-    section->add_literal(std::string($2) + "-" + std::string($4));
+    addSymbolOrEquLiteral(section, std::string($2) + "-" + std::string($4));
     section->add_instruction(0b0011, 0b1000, 15);
 }
 
 beq: BRANCH_EQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate {
-    section->add_literal($6);
+    addSymbolOrEquLiteral(section, $6);
     section->add_instruction(0b0011, 0b1001, 15, regs[$2], regs[$4]);
 } | BRANCH_EQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate {
     section->add_literal(toInt($6));
     section->add_instruction(0b0011, 0b1001, 15, regs[$2], regs[$4]);
 }
 bne: BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate {
-    section->add_literal($6);
+    addSymbolOrEquLiteral(section, $6);
     section->add_instruction(0b0011, 0b1010, 15, regs[$2], regs[$4]);
 } | BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate {
     section->add_literal(toInt($6));
     section->add_instruction(0b0011, 0b1010, 15, regs[$2], regs[$4]);
 }
 bgt: BRANCH_GREATER REGISTER COMMA REGISTER COMMA SYMBOL terminate {
-    section->add_literal($6);
+    addSymbolOrEquLiteral(section, $6);
     section->add_instruction(0b0011, 0b1011, 15, regs[$2], regs[$4]);
 } | BRANCH_GREATER REGISTER COMMA REGISTER COMMA INTEGER terminate {
     section->add_literal(toInt($6));
@@ -306,7 +334,7 @@ st: STORE REGISTER COMMA INTEGER terminate {
     section->add_literal(toInt($4));
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[$2]);
 } | STORE REGISTER COMMA SYMBOL terminate {
-    section->add_literal($4);
+    addSymbolOrEquLiteral(section, $4);
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[$2]);
 } | STORE REGISTER COMMA REGISTER terminate {
     section->add_instruction(0b1001, 0b0001, regs[$4], regs[$2]);
@@ -315,7 +343,7 @@ st: STORE REGISTER COMMA INTEGER terminate {
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS INTEGER RBRACKET terminate {
     section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2], toInt($7));
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS SYMBOL RBRACKET terminate {
-    section->add_literal($7);
+    addSymbolOrEquLiteral(section, $7);
     section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2]);
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS REGISTER RBRACKET terminate {
     section->add_instruction(0b1000, 0b0000, regs[$5], regs[$7], regs[$2]);
@@ -325,7 +353,7 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
     section->add_literal(toInt($3));
     section->add_instruction(0b1001, 0b0010, regs[$5], 15);
 } | LOAD DOLLAR SYMBOL COMMA REGISTER terminate {
-    section->add_literal($3);
+    addSymbolOrEquLiteral(section, $3);
     section->add_instruction(0b1001, 0b0010, regs[$5], 15);
 } | LOAD INTEGER COMMA REGISTER terminate {
     bool alt = (std::string($4) == "%r1");
@@ -339,7 +367,7 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
     bool alt = (std::string($4) == "%r1");
     unsigned char scratch = alt ? 2 : 1;
     section->add_instruction(0b1000, 0b0001, 14, 0, scratch, -1);
-    section->add_literal($2);
+    addSymbolOrEquLiteral(section, $2);
     section->add_instruction(0b1001, 0b0010, scratch, 15);
     section->add_instruction(0b1001, 0b0010, regs[$4], scratch);
     section->add_instruction(0b1001, 0b0011, scratch, 14, 0, 1);
