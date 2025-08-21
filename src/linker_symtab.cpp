@@ -4,15 +4,21 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <unordered_set>
 
 std::unordered_map<std::string, SymbolEntry> LinkerSymTab::symbols;
 std::vector<RelocationEntry> LinkerSymTab::relocations;
 std::unordered_map<std::string, int> LinkerSymTab::symbol_values;
 std::vector<Occurrence> LinkerSymTab::occurrences;
+std::unordered_map<std::string, int> LinkerSymTab::def_counts;
 
 void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>& filenames) {
     symbols.clear();
     relocations.clear();
+    occurrences.clear();
+    symbol_values.clear();
+    def_counts.clear();
+
     for (const auto& fname : filenames) {
         std::ifstream file(fname);
         if (!file.is_open()) {
@@ -25,6 +31,7 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
         bool in_symbols = false, in_relocations = false;
 
         auto trim = [](std::string& s) {
+            if (s.empty()) return;
             s.erase(s.find_last_not_of(" \n\r\t") + 1);
             s.erase(0, s.find_first_not_of(" \n\r\t"));
         };
@@ -37,8 +44,8 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                 break;
             }
             trim(line);
-
             if (line.empty()) continue;
+
             if (line == ".symbols") {
                 in_symbols = true;
                 in_relocations = false;
@@ -58,47 +65,53 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                     SymbolEntry entry;
                     entry.name = name;
                     entry.binding = binding;
+
+                    std::vector<std::string> toks;
+                    {
+                        std::string t;
+                        while (iss >> t) toks.push_back(t);
+                    }
+
+                    int numOcc = 0;
+                    if (!toks.empty()) {
+                        numOcc = std::stoi(toks.back());
+                        toks.pop_back();
+                    }
+
                     if (binding == "defined" || binding == "local" || binding == "global") {
-                        std::string strength, notyp;
-                        iss >> strength >> notyp
-                            >> entry.section
-                            >> entry.offset;
-                        if (entry.section == "ABS") entry.section = "";
+                        if (toks.size() >= 4) {
+                            entry.section = toks[toks.size() - 2];
+                            entry.offset  = std::stoi(toks[toks.size() - 1], nullptr, 0);
+                            if (entry.section == "ABS") entry.section.clear();
+                        } else {
+                            entry.section.clear();
+                            entry.offset = 0;
+                        }
                         entry.defined = true;
                         entry.file = fname;
+
+                        def_counts[name] += 1;
+
+                        symbols[name] = entry;
                     } else {
-                        std::string maybe_section;
-                        iss >> maybe_section >> entry.offset;
                         entry.defined = false;
                         entry.file = "";
-                    }
-                    if (binding == "defined" || symbols.find(name) == symbols.end()) {
-                        symbols[name] = entry;
+                        if (!symbols.count(name)) {
+                            symbols[name] = entry;
+                        }
                     }
 
-                    std::cerr << "[DEBUG][SYMBOL] name='" << name << "' binding='" << binding
-                              << "' section='" << entry.section << "' offset=" << entry.offset << std::endl;
-
-                    while (std::getline(file, line)) {
-                        trim(line);
-                        if (line.empty()) continue;
-                        if (line[0] == '.') {
-                            pending_line = line;
+                    for (int i = 0; i < numOcc; ++i) {
+                        std::string occLine;
+                        if (!std::getline(file, occLine)) break;
+                        trim(occLine);
+                        if (occLine.empty() || occLine[0] == '.') {
+                            pending_line = occLine;
                             break;
                         }
-                        std::istringstream peek(line);
-                        std::string first, second, third;
-                        peek >> first >> second >> third;
-                        if (second == "defined"
-                            || second == "local"
-                            || second == "global"
-                            || second == "undefined") {
-                            pending_line = line;
-                            break;
-                        }
-                        std::istringstream occiss(line);
+                        std::istringstream occiss(occLine);
                         std::string sec;
-                        int off;
+                        int off = 0;
                         int inPoolInt = 0;
                         occiss >> sec >> off >> inPoolInt;
 
@@ -108,12 +121,11 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                         occ.file = fname;
                         occ.offset = off;
                         occ.inPool = (inPoolInt != 0);
-                        LinkerSymTab::occurrences.push_back(occ);
+                        occurrences.push_back(occ);
                     }
                     continue;
                 }
-            }
-            else if (in_relocations) {
+            } else if (in_relocations) {
                 std::istringstream iss(line);
                 RelocationEntry rel;
                 iss >> rel.section >> rel.offset >> rel.type >> rel.symbol >> rel.addend;
@@ -133,13 +145,13 @@ void LinkerSymTab::resolve_symbols() {
             } else {
                 long base = LinkerSections::get_section_base(entry.section);
                 int file_offset = LinkerSections::get_offset(entry.section, entry.file);
-                symbol_values[name] = base + file_offset + entry.offset;
+                symbol_values[name] = static_cast<int>(base) + file_offset + entry.offset;
             }
         }
     }
     std::cerr << "[DEBUG][SYMBOL_VALUES]\n";
     for (const auto& [name, val] : symbol_values) {
-        std::cerr << "  '" << name << "' = 0x" << std::hex << val << std::endl;
+        std::cerr << "  '" << name << "' = 0x" << std::hex << val << std::dec << std::endl;
     }
 }
 
@@ -180,6 +192,64 @@ void LinkerSymTab::patch_occurrences() {
         } else {
             std::cerr << "[ERROR] Patch offset out of range for symbol '" << occ.symbol
                       << "' at offset " << patch_offset << " (data size: " << data.size() << ")\n";
+        }
+    }
+}
+
+bool LinkerSymTab::check_no_multiple_definitions(bool die_on_error) {
+    for (const auto& [name, cnt] : def_counts) {
+        if (cnt > 1) {
+            std::cerr << "Error: symbol multiply defined: " << name << "\n";
+            if (die_on_error) return false;
+        }
+    }
+    return true;
+}
+
+static int adjusted_symbol_offset(const SymbolEntry& e) {
+    if (e.section.empty()) {
+        return e.offset;
+    }
+    int file_off = LinkerSections::get_offset(e.section, e.file);
+    return file_off + e.offset;
+}
+
+static int adjusted_occurrence_offset(const Occurrence& o) {
+    int file_off = LinkerSections::get_offset(o.section, o.file);
+    return file_off + o.offset;
+}
+
+void LinkerSymTab::output_relocatable(std::ostream& out) {
+    std::unordered_map<std::string, std::vector<Occurrence>> occ_by_sym;
+    for (const auto& occ : occurrences) {
+        occ_by_sym[occ.symbol].push_back(occ);
+    }
+
+    std::vector<std::string> names;
+    names.reserve(symbols.size());
+    for (const auto& kv : symbols) names.push_back(kv.first);
+    std::sort(names.begin(), names.end());
+    names.erase(std::unique(names.begin(), names.end()), names.end());
+
+    for (const auto& name : names) {
+        const SymbolEntry& e = symbols.at(name);
+        const bool is_defined = e.defined;
+
+        out << name << " "
+            << (is_defined ? "defined" : "undefined") << " "
+            << "strong "
+            << "notyp";
+
+        const auto& occs = occ_by_sym[name];
+        if (is_defined) {
+            std::string section_out = e.section.empty() ? "ABS" : e.section;
+            int offset_out = e.section.empty() ? e.offset : adjusted_symbol_offset(e);
+            out << " " << section_out << " " << offset_out;
+        }
+        out << " " << occs.size() << "\n";
+
+        for (const auto& oc : occs) {
+            out << oc.section << "\t" << adjusted_occurrence_offset(oc) << "\t" << (oc.inPool ? 1 : 0) << "\n";
         }
     }
 }

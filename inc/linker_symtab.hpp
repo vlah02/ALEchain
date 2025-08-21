@@ -21,7 +21,6 @@ struct Occurrence {
     std::string file;
     int offset;
     bool inPool;
-
 };
 
 struct LinkerSymTab {
@@ -30,7 +29,12 @@ struct LinkerSymTab {
     static std::vector<Occurrence> occurrences;
     static std::unordered_map<std::string, int> symbol_values;
 
+    static std::unordered_map<std::string, int> def_counts;
+
     static void parse_symbols_and_relocations(const std::vector<std::string>& filenames);
     static void resolve_symbols();
     static void patch_occurrences();
+
+    static bool check_no_multiple_definitions(bool die_on_error);
+    static void output_relocatable(std::ostream& out);
 };
