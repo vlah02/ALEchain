@@ -11,35 +11,57 @@
 int main(int argc, char **argv) {
     std::string inputName;
     std::string outputName;
+
     if (argc == 2) {
         inputName = argv[1];
         outputName = argv[1];
-        outputName[outputName.size() - 1] = 'o';
+        if (outputName.empty() || outputName.back() != 's') {
+            std::cerr << "Usage: assembler [-o out.o] input.s\n";
+            return -2;
+        }
+        outputName.back() = 'o';
     } else if (argc == 4 && std::string(argv[1]) == "-o") {
-        inputName = argv[3];
         outputName = argv[2];
+        inputName  = argv[3];
     } else {
+        std::cerr << "Usage: assembler [-o out.o] input.s\n";
         return -2;
     }
 
-    std::ifstream input;
-    input.open(inputName);
+    std::ifstream input(inputName);
     if (!input) {
-        std::cerr << "Unable to open file " << std::endl;
+        std::cerr << "Unable to open file '" << inputName << "'\n";
         return -1;
     }
-    std::stringstream buffer;
-    buffer << input.rdbuf();
-    yy_scan_string(buffer.str().c_str());
-    yyparse();
 
-    std::ofstream output;
-    output.open(outputName);
+    std::stringstream ss;
+    ss << input.rdbuf();
+    const std::string source = ss.str();
+
+    YY_BUFFER_STATE buf = yy_scan_bytes(source.data(),
+                                        static_cast<int>(source.size()));
+
+    int parse_rc = yyparse();
+
+    yy_delete_buffer(buf);
+    yylex_destroy();
+
+    if (parse_rc != 0) {
+        std::cerr << "Assembly failed. No output written.\n";
+        return 1;
+    }
 
     Section::dumpPool();
-    output << ".sections" << std::endl;
+
+    std::ofstream output(outputName);
+    if (!output) {
+        std::cerr << "Unable to open output file '" << outputName << "' for writing\n";
+        return -3;
+    }
+
+    output << ".sections\n";
     Section::out(output);
-    output << ".symbols" << std::endl;
+    output << ".symbols\n";
     SymTab::out(output);
 
     return 0;

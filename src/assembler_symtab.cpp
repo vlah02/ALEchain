@@ -81,7 +81,7 @@ void SymTab::out(std::ostream& os) {
         if (types.find(row.first) != types.end())
             os << types[row.first];
         else
-            os << "notyp";
+            os << "NOTYPE";
         if (type != std::string("undefined")) {
             if (row.second->section.empty())
                 os << " ABS " << row.second->line;

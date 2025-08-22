@@ -212,11 +212,18 @@ equ: dotEQU SYMBOL COMMA INTEGER terminate {
 };
 
 end: dotEND terminate {
-    YYABORT;
+    YYACCEPT;
 };
 
 type: dotTYPE SYMBOL COMMA SYMBOL terminate {
-    SymTab::add_type($2, $4);
+    std::string t($4);
+    if (t != "FUNC" && t != "DATA" && t != "NOTYPE") {
+        std::cerr << "ERROR: invalid .type for symbol '" << $2
+                  << "': got '" << t
+                  << "', expected one of: FUNC, DATA, NOTYPE\n";
+        YYABORT;
+    }
+    SymTab::add_type($2, t);
 };
 
 weak: dotWEAK symblist terminate {

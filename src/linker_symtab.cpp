@@ -11,6 +11,7 @@ std::vector<RelocationEntry> LinkerSymTab::relocations;
 std::unordered_map<std::string, int> LinkerSymTab::symbol_values;
 std::vector<Occurrence> LinkerSymTab::occurrences;
 std::unordered_map<std::string, int> LinkerSymTab::def_counts;
+std::unordered_map<std::string, std::string> LinkerSymTab::first_non_notype;
 
 void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>& filenames) {
     symbols.clear();
@@ -80,10 +81,12 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
 
                     if (binding == "defined" || binding == "local" || binding == "global") {
                         if (toks.size() >= 4) {
+                            entry.stype = toks[1];
                             entry.section = toks[toks.size() - 2];
                             entry.offset  = std::stoi(toks[toks.size() - 1], nullptr, 0);
                             if (entry.section == "ABS") entry.section.clear();
                         } else {
+                            if (toks.size() >= 2) entry.stype = toks[1];
                             entry.section.clear();
                             entry.offset = 0;
                         }
@@ -92,12 +95,31 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
 
                         def_counts[name] += 1;
 
+                        if (!entry.stype.empty() && entry.stype != "NOTYPE") {
+                            auto it = first_non_notype.find(name);
+                            if (it == first_non_notype.end()) first_non_notype[name] = entry.stype;
+                            else if (it->second != entry.stype) {
+                                std::cerr << "Error: symbol '" << name << "' has conflicting types across files: "
+                                          << it->second << " vs " << entry.stype << "\n";
+                                exit(4);
+                            }
+                        }
                         symbols[name] = entry;
                     } else {
                         entry.defined = false;
                         entry.file = "";
+                        if (toks.size() >= 2) entry.stype = toks[1];
                         if (!symbols.count(name)) {
                             symbols[name] = entry;
+                        }
+                        if (!entry.stype.empty() && entry.stype != "NOTYPE") {
+                            auto it = first_non_notype.find(name);
+                            if (it == first_non_notype.end()) first_non_notype[name] = entry.stype;
+                            else if (it->second != entry.stype) {
+                                std::cerr << "Error: symbol '" << name << "' has conflicting types across files: "
+                                          << it->second << " vs " << entry.stype << "\n";
+                                exit(4);
+                            }
                         }
                     }
 
@@ -235,10 +257,11 @@ void LinkerSymTab::output_relocatable(std::ostream& out) {
         const SymbolEntry& e = symbols.at(name);
         const bool is_defined = e.defined;
 
+        std::string ty = e.stype.empty() ? std::string("NOTYPE") : e.stype;
         out << name << " "
             << (is_defined ? "defined" : "undefined") << " "
             << "strong "
-            << "notyp";
+            << ty;
 
         const auto& occs = occ_by_sym[name];
         if (is_defined) {
