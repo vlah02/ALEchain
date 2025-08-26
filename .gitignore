@@ -1,5 +1,6 @@
 cmake-build-*/
 .idea/
+CMakeLists.txt
 
 inc/lexer.hpp
 inc/parser.hpp
