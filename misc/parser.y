@@ -10,11 +10,7 @@
 #include "../inc/assembler_section.hpp"
 #include "../inc/assembler_symtab.hpp"
 
-unsigned char word[8] = {};
-
 Section *section = Section::extract("txt");
-
-long toInt(const std::string &str);
 
 long tryResolveEqu(const std::string& name) {
     auto plus = name.find('+');
@@ -78,10 +74,7 @@ std::vector<std::pair<std::string, valtype>> vallist;
 std::vector<unsigned short> reglist;
 %}
 
-%union {
-    const char *str;
-}
-
+%union { const char *str; }
 %token<str> dotGLOBAL dotSECTION dotWORD dotSKIP dotASCII dotEQU dotEND dotTYPE dotWEAK
 %token<str> HALT INTERRUPT INTERRUPT_RETURN CALL RETURN JUMP BRANCH_EQUAL BRANCH_notEQUAL BRANCH_GREATER PUSH POP EXCHANGE ADD SUBTRACT MULTIPLY DIVIDE NOT AND OR XOR SHIFT_LEFT SHIFT_RIGHT LOAD STORE CSRRD CSRWR
 %token<str> NEWLINE COMMENT STRING SYMBOL INTEGER REGISTER SYSTEM_REGISTER
@@ -154,7 +147,7 @@ section: dotSECTION SYMBOL terminate {
 word: dotWORD vallist terminate {
     for (auto it = vallist.rbegin(); it != vallist.rend(); ++it) {
         if (it->second == valtype::INT) {
-            section->insertInt(toInt(it->first));
+            section->insertInt(std::stoul(it->first, nullptr, 0));
         } else if (it->second == valtype::SYM) {
             long equVal = tryResolveEqu(it->first);
             if (equVal != std::numeric_limits<long>::min()) {
@@ -181,7 +174,7 @@ word: dotWORD vallist terminate {
 };
 
 skip: dotSKIP INTEGER terminate {
-    for (int i = 0; i < toInt($2); i++) {
+    for (int i = 0; i < std::stoul($2, nullptr, 0); i++) {
         section->insertByte(0);
     }
 };
@@ -197,7 +190,7 @@ ascii: dotASCII STRING terminate {
 };
 
 equ: dotEQU SYMBOL COMMA INTEGER terminate {
-    SymTab::equs[$2] = toInt($4);
+    SymTab::equs[$2] = std::stoul($4, nullptr, 0);
     if (SymTab::globals.count($2)) {
         SymTab::add_definition($2, "", SymTab::equs[$2]);
     }
@@ -244,14 +237,14 @@ call: CALL SYMBOL terminate {
     addSymbolOrEquLiteral(section, $2);
     section->add_instruction(0b0010, 0b0001, 15);
 } | CALL INTEGER terminate {
-    section->add_literal(toInt($2));
+    section->add_literal(std::stoul($2, nullptr, 0));
     section->add_instruction(0b0010, 0b0001, 15);
 }
 jmp: JUMP SYMBOL terminate {
     addSymbolOrEquLiteral(section, $2);
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP INTEGER terminate {
-    section->add_literal(toInt($2));
+    section->add_literal(std::stoul($2, nullptr, 0));
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP SYMBOL PLUS INTEGER terminate {
     addSymbolOrEquLiteral(section, std::string($2) + "+" + std::string($4));
@@ -265,21 +258,21 @@ beq: BRANCH_EQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate {
     addSymbolOrEquLiteral(section, $6);
     section->add_instruction(0b0011, 0b1001, 15, regs[$2], regs[$4]);
 } | BRANCH_EQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate {
-    section->add_literal(toInt($6));
+    section->add_literal(std::stoul($6, nullptr, 0));
     section->add_instruction(0b0011, 0b1001, 15, regs[$2], regs[$4]);
 }
 bne: BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate {
     addSymbolOrEquLiteral(section, $6);
     section->add_instruction(0b0011, 0b1010, 15, regs[$2], regs[$4]);
 } | BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate {
-    section->add_literal(toInt($6));
+    section->add_literal(std::stoul($6, nullptr, 0));
     section->add_instruction(0b0011, 0b1010, 15, regs[$2], regs[$4]);
 }
 bgt: BRANCH_GREATER REGISTER COMMA REGISTER COMMA SYMBOL terminate {
     addSymbolOrEquLiteral(section, $6);
     section->add_instruction(0b0011, 0b1011, 15, regs[$2], regs[$4]);
 } | BRANCH_GREATER REGISTER COMMA REGISTER COMMA INTEGER terminate {
-    section->add_literal(toInt($6));
+    section->add_literal(std::stoul($6, nullptr, 0));
     section->add_instruction(0b0011, 0b1011, 15, regs[$2], regs[$4]);
 }
 
@@ -338,7 +331,7 @@ pop: POP REGISTER terminate {
 }
 
 st: STORE REGISTER COMMA INTEGER terminate {
-    section->add_literal(toInt($4));
+    section->add_literal(std::stoul($4, nullptr, 0));
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[$2]);
 } | STORE REGISTER COMMA SYMBOL terminate {
     addSymbolOrEquLiteral(section, $4);
@@ -348,7 +341,7 @@ st: STORE REGISTER COMMA INTEGER terminate {
 } | STORE REGISTER COMMA LBRACKET REGISTER RBRACKET terminate {
     section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2]);
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS INTEGER RBRACKET terminate {
-    section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2], toInt($7));
+    section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2], std::stoul($7, nullptr, 0));
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS SYMBOL RBRACKET terminate {
     addSymbolOrEquLiteral(section, $7);
     section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2]);
@@ -357,7 +350,7 @@ st: STORE REGISTER COMMA INTEGER terminate {
 }
 
 ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
-    section->add_literal(toInt($3));
+    section->add_literal(std::stoul($3, nullptr, 0));
     section->add_instruction(0b1001, 0b0010, regs[$5], 15);
 } | LOAD DOLLAR SYMBOL COMMA REGISTER terminate {
     addSymbolOrEquLiteral(section, $3);
@@ -366,7 +359,7 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
     bool alt = (std::string($4) == "%r1");
     unsigned char scratch = alt ? 2 : 1;
     section->add_instruction(0b1000, 0b0001, 14, 0, scratch, -1);
-    section->add_literal(toInt($2));
+    section->add_literal(std::stoul($2, nullptr, 0));
     section->add_instruction(0b1001, 0b0010, scratch, 15);
     section->add_instruction(0b1001, 0b0010, regs[$4], scratch);
     section->add_instruction(0b1001, 0b0011, scratch, 14, 0, 1);
@@ -383,7 +376,7 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
 } | LOAD LBRACKET REGISTER RBRACKET COMMA REGISTER terminate {
     section->add_instruction(0b1001, 0b0010, regs[$6], regs[$3]);
 } | LOAD LBRACKET REGISTER PLUS INTEGER RBRACKET COMMA REGISTER terminate {
-    section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3], 0, toInt($5));
+    section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3], 0, std::stoul($5, nullptr, 0));
 } | LOAD LBRACKET REGISTER PLUS SYMBOL RBRACKET COMMA REGISTER terminate {
     SymTab::add_occurrence($5, section->getName(), section->getSize(), false);
     section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3]);
@@ -412,52 +405,4 @@ csrwr: CSRWR REGISTER COMMA SYSTEM_REGISTER terminate {
 
 void yyerror(const char *s) {
     fprintf(stderr, "ERROR (token=%d, text=%s) (last symbol='%s')\n", yychar, yytext, yylval.str);
-}
-
-long toInt(const std::string &str) {
-    int base = 10;
-    int start = 0;
-    bool isNegative = false;
-
-    if (str[0] == '-') {
-        isNegative = true;
-        start = 1;
-    }
-
-    if (str[start] == '0' && start + 1 < str.length()) {
-        char nextChar = tolower(str[start + 1]);
-        if (nextChar == 'x') {
-            base = 16;
-            start += 2;
-        } else if (nextChar == 'o') {
-            base = 8;
-            start += 2;
-        } else if (nextChar == 'b') {
-            base = 2;
-            start += 2;
-        }
-    }
-
-    long result = 0;
-
-    for (int i = start; i < str.length(); ++i) {
-        char c = tolower(str[i]);
-        int digit = 0;
-
-        if (isdigit(c)) {
-            digit = c - '0';
-        } else if (isalpha(c)) {
-            digit = c - 'a' + 10;
-        } else {
-            throw std::invalid_argument("Invalid character in input string");
-        }
-
-        if (digit >= base) {
-            throw std::invalid_argument("Digit out of range for base");
-        }
-
-        result = result * base + digit;
-    }
-
-    return isNegative ? -result : result;
 }
