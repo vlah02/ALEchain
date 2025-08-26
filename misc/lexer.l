@@ -104,7 +104,7 @@ csrwr                        { RET(CSRWR); }
 %(status|handler|cause)      { RET(SYSTEM_REGISTER); }
 
 {CRLF}                       { RET(NEWLINE); }
-\#.*                         { RET(COMMENT); }
+\#.*                         { /* skip */ }
 {WS}                         { /* skip */ }
 
 .                            { RET(CATCH_ERROR); }
