@@ -1,98 +1,112 @@
+%option noyywrap
+%option nodefault
+%option nounput
+%option noinput
+%option yylineno
+
 %{
+#include <cstdlib>
+#include <cstring>
 #include "../inc/parser.hpp"
-#include <iostream>
+
+static inline char* yy_strndup(const char* s, size_t n) {
+    char* p = (char*)std::malloc(n + 1);
+    if (!p) return nullptr;
+    std::memcpy(p, s, n);
+    p[n] = '\0';
+    return p;
+}
+#define RET(tok) do { yylval.str = yy_strndup(yytext, (size_t)yyleng); return tok; } while(0)
 %}
 
-digit [0-9]
-decimal {digit}+
-hexadigit [0-9]|[A-F]|[a-f]
-hexa "0x"({hexadigit})+
-octadigit [0-7]
-octal "0o"({octadigit})+
-bindigit [0-1]
-binary "0b"({bindigit})+
-lowercase [a-z]
-uppercase [A-Z]
-letter {lowercase}|{uppercase}|"_"
-alphanum ({digit}|{letter})+
-operator "+"|"-"|"*"|"/"
+DIGIT        [0-9]
+DECIMAL      {DIGIT}+
+HEXADIGIT    [0-9A-Fa-f]
+HEXA         0[xX]{HEXADIGIT}+
+OCTADIGIT    [0-7]
+OCTAL        0[oO]{OCTADIGIT}+
+BINDIGIT     [01]
+BINARY       0[bB]{BINDIGIT}+
 
+LETTER       [A-Za-z_]
+ALPHANUM     ({LETTER}|{DIGIT})+
 
+REGNUM       (1[0-5]|[0-9])
+REGISTER_RX  %r{REGNUM}
+REGISTER_SP  %sp
+REGISTER_PC  %pc
 
-%%
-
-".global"|".extern" { yylval.str = strdup(yytext); return dotGLOBAL; }
-".section" { yylval.str = strdup(yytext); return dotSECTION; }
-".word" { yylval.str = strdup(yytext); return dotWORD; }
-".skip" { yylval.str = strdup(yytext); return dotSKIP; }
-".ascii" { yylval.str = strdup(yytext); return dotASCII; }
-".equ" { yylval.str = strdup(yytext); return dotEQU; }
-".end" { yylval.str = strdup(yytext); return dotEND; }
-".type" { yylval.str = strdup(yytext); return dotTYPE; }
-".weak" { yylval.str = strdup(yytext); return dotWEAK; }
-
-
-"halt" { yylval.str = strdup(yytext); return HALT; }
-"int" { yylval.str = strdup(yytext); return INTERRUPT; }
-"iret" { yylval.str = strdup(yytext); return INTERRUPT_RETURN; }
-"call" { yylval.str = strdup(yytext); return CALL; }
-"ret" { yylval.str = strdup(yytext); return RETURN; }
-"jmp" { yylval.str = strdup(yytext); return JUMP; }
-"beq" { yylval.str = strdup(yytext); return BRANCH_EQUAL; }
-"bne" { yylval.str = strdup(yytext); return BRANCH_notEQUAL; }
-"bgt" { yylval.str = strdup(yytext); return BRANCH_GREATER; }
-"push" { yylval.str = strdup(yytext); return PUSH; }
-"pop" { yylval.str = strdup(yytext); return POP; }
-"xchg" { yylval.str = strdup(yytext); return EXCHANGE; }
-"add" { yylval.str = strdup(yytext); return ADD; }
-"sub" { yylval.str = strdup(yytext); return SUBTRACT; }
-"mul" { yylval.str = strdup(yytext); return MULTIPLY; }
-"div" { yylval.str = strdup(yytext); return DIVIDE; }
-"not" { yylval.str = strdup(yytext); return NOT; }
-"and" { yylval.str = strdup(yytext); return AND; }
-"or" { yylval.str = strdup(yytext); return OR; }
-"xor" { yylval.str = strdup(yytext); return XOR; }
-"shl" { yylval.str = strdup(yytext); return SHIFT_LEFT; }
-"shr" { yylval.str = strdup(yytext); return SHIFT_RIGHT; }
-"ld" { yylval.str = strdup(yytext); return LOAD; }
-"st" { yylval.str = strdup(yytext); return STORE; }
-"csrrd" { yylval.str = strdup(yytext); return CSRRD; }
-"csrwr" { yylval.str = strdup(yytext); return CSRWR; }
-
-
-[\n] { yylval.str = strdup(yytext); return NEWLINE; }
-"#"(.)* { yylval.str = strdup(yytext); return COMMENT; }
-\"([^\"]*)\"   { yylval.str = strdup(yytext); return STRING; }
-{letter}({alphanum})* { yylval.str = strdup(yytext); return SYMBOL; }
-{decimal}         { yylval.str = strdup(yytext); return INTEGER; }
-{hexa}            { yylval.str = strdup(yytext); return INTEGER; }
-{octal}           { yylval.str = strdup(yytext); return INTEGER; }
-{binary}          { yylval.str = strdup(yytext); return INTEGER; }
-"%"(("r"{digit}[0-5]?)|"pc"|"sp") { yylval.str = strdup(yytext); return REGISTER; }
-"%"("status"|"handler"|"cause") { yylval.str = strdup(yytext); return SYSTEM_REGISTER; }
-
-"+" { yylval.str = strdup(yytext); return PLUS; }
-"-" { yylval.str = strdup(yytext); return MINUS; }
-"*" { yylval.str = strdup(yytext); return STAR; }
-"/" { yylval.str = strdup(yytext); return SLASH; }
-":" { yylval.str = strdup(yytext); return COLON; }
-"$" { yylval.str = strdup(yytext); return DOLLAR; }
-"[" { yylval.str = strdup(yytext); return LBRACKET; }
-"]" { yylval.str = strdup(yytext); return RBRACKET; }
-"," { yylval.str = strdup(yytext); return COMMA; }
-"{" { yylval.str = strdup(yytext); return LCBRACKET; }
-"}" { yylval.str = strdup(yytext); return RCBRACKET; }
-"<<" { yylval.str = strdup(yytext); return LSLS; }
-">>" { yylval.str = strdup(yytext); return GRGR; }
-
-[ \t]+ {}
-
-. { yylval.str = strdup(yytext); return CATCH_ERROR; }
+WS           [ \t]+
+CRLF         \r?\n
 
 %%
 
+".global"                    { RET(dotGLOBAL); }
+".extern"                    { RET(dotGLOBAL); }
+".section"                   { RET(dotSECTION); }
+".word"                      { RET(dotWORD); }
+".skip"                      { RET(dotSKIP); }
+".ascii"                     { RET(dotASCII); }
+".equ"                       { RET(dotEQU); }
+".end"                       { RET(dotEND); }
+".type"                      { RET(dotTYPE); }
+".weak"                      { RET(dotWEAK); }
 
+halt                         { RET(HALT); }
+int                          { RET(INTERRUPT); }
+iret                         { RET(INTERRUPT_RETURN); }
+call                         { RET(CALL); }
+ret                          { RET(RETURN); }
+jmp                          { RET(JUMP); }
+beq                          { RET(BRANCH_EQUAL); }
+bne                          { RET(BRANCH_notEQUAL); }
+bgt                          { RET(BRANCH_GREATER); }
+push                         { RET(PUSH); }
+pop                          { RET(POP); }
+xchg                         { RET(EXCHANGE); }
+add                          { RET(ADD); }
+sub                          { RET(SUBTRACT); }
+mul                          { RET(MULTIPLY); }
+div                          { RET(DIVIDE); }
+not                          { RET(NOT); }
+and                          { RET(AND); }
+or                           { RET(OR); }
+xor                          { RET(XOR); }
+shl                          { RET(SHIFT_LEFT); }
+shr                          { RET(SHIFT_RIGHT); }
+ld                           { RET(LOAD); }
+st                           { RET(STORE); }
+csrrd                        { RET(CSRRD); }
+csrwr                        { RET(CSRWR); }
 
-int yywrap() {
-    return 1;
-}
+"<<"                         { RET(LSLS); }
+">>"                         { RET(GRGR); }
+"+"                          { RET(PLUS); }
+"-"                          { RET(MINUS); }
+"*"                          { RET(STAR); }
+"/"                          { RET(SLASH); }
+":"                          { RET(COLON); }
+"$"                          { RET(DOLLAR); }
+"["                          { RET(LBRACKET); }
+"]"                          { RET(RBRACKET); }
+","                          { RET(COMMA); }
+"{"                          { RET(LCBRACKET); }
+"}"                          { RET(RCBRACKET); }
+
+\"([^\"]*)\"                 { RET(STRING); }
+{HEXA}                       { RET(INTEGER); }
+{OCTAL}                      { RET(INTEGER); }
+{BINARY}                     { RET(INTEGER); }
+{DECIMAL}                    { RET(INTEGER); }
+{LETTER}{ALPHANUM}*          { RET(SYMBOL); }
+
+({REGISTER_RX}|{REGISTER_PC}|{REGISTER_SP})  { RET(REGISTER); }
+%(status|handler|cause)      { RET(SYSTEM_REGISTER); }
+
+{CRLF}                       { RET(NEWLINE); }
+\#.*                         { RET(COMMENT); }
+{WS}                         { /* skip */ }
+
+.                            { RET(CATCH_ERROR); }
+
+%%
