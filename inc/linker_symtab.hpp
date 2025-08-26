@@ -8,6 +8,7 @@ struct SymbolEntry {
     std::string stype;
     int offset = 0;
     bool defined = false;
+    bool is_weak = false;
 };
 
 struct RelocationEntry {
@@ -31,6 +32,7 @@ struct LinkerSymTab {
     static std::unordered_map<std::string, int> symbol_values;
 
     static std::unordered_map<std::string, int> def_counts;
+    static std::unordered_map<std::string, int> strong_def_counts;
     static std::unordered_map<std::string, std::string> first_non_notype;
 
     static void parse_symbols_and_relocations(const std::vector<std::string>& filenames);

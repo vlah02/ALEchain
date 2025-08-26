@@ -81,6 +81,8 @@ void Section::dumpPool() {
             }
         }
     }
+
+    SymTab::validate_weaks_or_die();
 }
 
 void Section::out(std::ostream& out) {

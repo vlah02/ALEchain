@@ -12,6 +12,7 @@ public:
     static void resolve_pending_equs();
     static long value_of(const std::string& name);
     static long get_label_value_if_known(const std::string& name);
+    static void validate_weaks_or_die();
     static void out(std::ostream& os);
 
     struct symOccurrence {

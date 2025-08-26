@@ -69,6 +69,23 @@ void SymTab::resolve_pending_equs() {
     pending_equs.clear();
 }
 
+void SymTab::validate_weaks_or_die() {
+    for (const auto& w : weaks) {
+        auto it = table.find(w);
+        if (it == table.end()) {
+            std::cerr << "ERROR: .weak symbol '" << w << "' was declared but never defined nor referenced in this module.\n";
+            exit(1);
+        }
+        auto* def = it->second;
+        bool hasDef = (def->line != -1);
+        bool hasOcc = !def->occurences.empty();
+        if (!hasDef && !hasOcc) {
+            std::cerr << "ERROR: .weak symbol '" << w << "' was declared but never defined nor referenced in this module.\n";
+            exit(1);
+        }
+    }
+}
+
 void SymTab::out(std::ostream& os) {
     for (auto& row : table) {
         std::string type = (globals.find(row.first) != globals.end() ? (row.second->line == -1 ? "undefined" : "defined") : "local");

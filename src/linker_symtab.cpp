@@ -11,6 +11,7 @@ std::vector<RelocationEntry> LinkerSymTab::relocations;
 std::unordered_map<std::string, int> LinkerSymTab::symbol_values;
 std::vector<Occurrence> LinkerSymTab::occurrences;
 std::unordered_map<std::string, int> LinkerSymTab::def_counts;
+std::unordered_map<std::string, int> LinkerSymTab::strong_def_counts;
 std::unordered_map<std::string, std::string> LinkerSymTab::first_non_notype;
 
 void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>& filenames) {
@@ -19,6 +20,7 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
     occurrences.clear();
     symbol_values.clear();
     def_counts.clear();
+    strong_def_counts.clear();
 
     for (const auto& fname : filenames) {
         std::ifstream file(fname);
@@ -79,46 +81,68 @@ void LinkerSymTab::parse_symbols_and_relocations(const std::vector<std::string>&
                         toks.pop_back();
                     }
 
-                    if (binding == "defined" || binding == "local" || binding == "global") {
-                        if (toks.size() >= 4) {
-                            entry.stype = toks[1];
-                            entry.section = toks[toks.size() - 2];
-                            entry.offset  = std::stoi(toks[toks.size() - 1], nullptr, 0);
-                            if (entry.section == "ABS") entry.section.clear();
-                        } else {
-                            if (toks.size() >= 2) entry.stype = toks[1];
-                            entry.section.clear();
-                            entry.offset = 0;
-                        }
-                        entry.defined = true;
-                        entry.file = fname;
+                    if (toks.empty()) {
+                        std::cerr << "Error parsing symbols for '" << name << "': missing strength token\n";
+                        exit(4);
+                    }
+                    const std::string strength = toks.front();
+                    toks.erase(toks.begin());
+                    if (strength == "weak") entry.is_weak = true;
+                    else if (strength == "strong") entry.is_weak = false;
+                    else {
+                        std::cerr << "Error parsing symbols: expected 'weak' or 'strong' for symbol '"
+                                  << name << "' but got '" << strength << "'\n";
+                        exit(4);
+                    }
 
-                        def_counts[name] += 1;
+                    entry.stype = toks.empty() ? std::string("NOTYPE") : toks[0];
+                    if (!toks.empty()) toks.erase(toks.begin());
 
-                        if (!entry.stype.empty() && entry.stype != "NOTYPE") {
-                            auto it = first_non_notype.find(name);
-                            if (it == first_non_notype.end()) first_non_notype[name] = entry.stype;
-                            else if (it->second != entry.stype) {
-                                std::cerr << "Error: symbol '" << name << "' has conflicting types across files: "
-                                          << it->second << " vs " << entry.stype << "\n";
+                    auto record_type_consistency = [&](const std::string& sym, const std::string& ty) {
+                        if (!ty.empty() && ty != "NOTYPE") {
+                            auto it = first_non_notype.find(sym);
+                            if (it == first_non_notype.end()) first_non_notype[sym] = ty;
+                            else if (it->second != ty) {
+                                std::cerr << "Error: symbol '" << sym << "' has conflicting types across files: "
+                                          << it->second << " vs " << ty << "\n";
                                 exit(4);
                             }
                         }
+                    };
+                    record_type_consistency(name, entry.stype);
+
+                    bool have_loc = (toks.size() >= 2);
+                    std::string raw_section = have_loc ? toks[0] : "";
+                    int raw_offset = have_loc ? std::stoi(toks[1], nullptr, 0) : 0;
+
+                    bool is_defined_here = false;
+                    if (have_loc) {
+                        if (!(raw_section == "ABS" && raw_offset == -1)) {
+                            is_defined_here = true;
+                        }
+                    }
+                    entry.defined = is_defined_here;
+                    entry.section = (raw_section == "ABS") ? "" : raw_section;
+                    entry.offset  = raw_offset;
+
+                    entry.file = fname;
+
+                    if (entry.defined) {
+                        def_counts[name] += 1;
+                        if (!entry.is_weak) strong_def_counts[name] += 1;
+                    }
+
+                    auto it = symbols.find(name);
+                    if (it == symbols.end()) {
                         symbols[name] = entry;
                     } else {
-                        entry.defined = false;
-                        entry.file = "";
-                        if (toks.size() >= 2) entry.stype = toks[1];
-                        if (!symbols.count(name)) {
-                            symbols[name] = entry;
+                        SymbolEntry& cur = it->second;
+                        if (!cur.defined && entry.defined) {
+                            cur = entry;
                         }
-                        if (!entry.stype.empty() && entry.stype != "NOTYPE") {
-                            auto it = first_non_notype.find(name);
-                            if (it == first_non_notype.end()) first_non_notype[name] = entry.stype;
-                            else if (it->second != entry.stype) {
-                                std::cerr << "Error: symbol '" << name << "' has conflicting types across files: "
-                                          << it->second << " vs " << entry.stype << "\n";
-                                exit(4);
+                        else if (cur.defined && entry.defined) {
+                            if (cur.is_weak && !entry.is_weak) {
+                                cur = entry;
                             }
                         }
                     }
@@ -219,9 +243,9 @@ void LinkerSymTab::patch_occurrences() {
 }
 
 bool LinkerSymTab::check_no_multiple_definitions(bool die_on_error) {
-    for (const auto& [name, cnt] : def_counts) {
+    for (const auto& [name, cnt] : strong_def_counts) {
         if (cnt > 1) {
-            std::cerr << "Error: symbol multiply defined: " << name << "\n";
+            std::cerr << "Error: symbol multiply defined (strong): " << name << "\n";
             if (die_on_error) return false;
         }
     }
@@ -260,7 +284,7 @@ void LinkerSymTab::output_relocatable(std::ostream& out) {
         std::string ty = e.stype.empty() ? std::string("NOTYPE") : e.stype;
         out << name << " "
             << (is_defined ? "defined" : "undefined") << " "
-            << "strong "
+            << (e.is_weak ? "weak " : "strong ")
             << ty;
 
         const auto& occs = occ_by_sym[name];
