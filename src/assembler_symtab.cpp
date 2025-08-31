@@ -30,42 +30,37 @@ void SymTab::add_type(const std::string& symbol, const std::string& type) {
     types.insert({symbol, type});
 }
 
-long SymTab::get_label_value_if_known(const std::string& name) {
-    auto it = SymTab::table.find(name);
-    if (it != SymTab::table.end() && it->second->line != -1) {
-        return it->second->line;
-    }
-    return std::numeric_limits<long>::min();
-}
-
-long SymTab::value_of(const std::string& name) {
-    auto eq = SymTab::equs.find(name);
-    if (eq != SymTab::equs.end()) return eq->second;
-
-    long lab = SymTab::get_label_value_if_known(name);
-    if (lab != std::numeric_limits<long>::min()) return lab;
-
-    return std::numeric_limits<long>::min();
-}
-
 void SymTab::resolve_pending_equs() {
-    for (auto& e : pending_equs) {
-        long L = value_of(e.lhs);
-        long R = value_of(e.rhs);
+    auto lookup = [&](const std::string& sym, long& out) -> bool {
+        if (auto it = equs.find(sym); it != equs.end()) {
+            out = it->second;
+            return true;
+        }
+        if (auto it = table.find(sym); it != table.end() && it->second->line != -1) {
+            out = static_cast<long>(it->second->line);
+            return true;
+        }
+        return false;
+    };
 
-        long val;
-        if (L == std::numeric_limits<long>::min() || R == std::numeric_limits<long>::min()) {
+    for (auto& e : pending_equs) {
+        long L = 0, R = 0;
+        bool okL = lookup(e.lhs, L);
+        bool okR = lookup(e.rhs, R);
+
+        long val = 0;
+        if (!okL || !okR) {
             std::cerr << "ERROR: undefined symbol in deferred .equ: "
-                      << e.lhs << " or " << e.rhs << std::endl;
-            val = 0;
+                      << (!okL ? e.lhs : "") << ((!okL && !okR) ? " and " : "")
+                      << (!okR ? e.rhs : "") << "\n";
         } else {
             val = (e.op == SymTab::EquEntry::Op::ADD) ? (L + R) : (L - R);
         }
 
         equs[e.dst] = val;
-
-        add_definition(e.dst, "", (int)val);
+        add_definition(e.dst, "", static_cast<int>(val));
     }
+
     pending_equs.clear();
 }
 
