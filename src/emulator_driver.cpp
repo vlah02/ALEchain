@@ -6,7 +6,6 @@
 #include <cstring>
 #include <chrono>
 #include "../inc/emulator_driver.hpp"
-#include "../inc/emulator_devices.hpp"
 
 constexpr uint32_t PC_START = 0x40000000;
 constexpr uint32_t SP_REG   = 14;
@@ -18,17 +17,20 @@ constexpr uint32_t CAUSE   = 2;
 
 #define REG(x) ((x) == 0 ? 0 : regs[x])
 
-Emulator::Emulator() : bus(mem) {
+Emulator::Emulator()
+    : bus(mem)
+    , timer(TIM_CFG, [this]{ csr[CAUSE] = 2; })
+    , term(TERM_CFG,
+            [this]{ csr[CAUSE] = 3; },
+            HostTerminal::read_char_nonblock,
+            [](uint8_t ch){ std::cout << static_cast<char>(ch) << std::flush; })
+{
     std::memset(regs, 0, sizeof(regs));
     std::memset(csr, 0, sizeof(csr));
     regs[PC_REG] = PC_START;
 
-    timer_cfg_value = 0;
-    timer_last = std::chrono::steady_clock::now();
-
-    bus.map(make_term_out());
-    bus.map(make_term_in(term_in_value));
-    bus.map(make_tim_cfg(timer_cfg_value, timer_last));
+    bus.map(timer.mmio());
+    bus.map(term.mmio());
 }
 
 void Emulator::load_memory(const std::string& hex_filename) {
@@ -55,34 +57,9 @@ void Emulator::load_memory(const std::string& hex_filename) {
     }
 }
 
-void Emulator::poll_terminal_input() {
-    int c = HostTerminal::read_char_nonblock();
-    if (c != EOF) {
-        term_in_value = static_cast<uint8_t>(c);
-        csr[CAUSE] = 3;
-    }
-}
-
-uint32_t Emulator::load32(uint32_t address) {
-    return bus.read32(address);
-}
-
-void Emulator::store32(uint32_t address, uint32_t value) {
-    bus.write32(address, value);
-}
-
 bool Emulator::execute_instruction() {
-    poll_terminal_input();
-
-    if (timer_cfg_value <= 7) {
-        auto now = std::chrono::steady_clock::now();
-        uint32_t period_ms = get_timer_period_ms(timer_cfg_value);
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - timer_last).count();
-        if (elapsed >= period_ms) {
-            csr[CAUSE] = 2;
-            timer_last = now;
-        }
-    }
+    term.tick();
+    timer.tick(std::chrono::steady_clock::now());
 
     uint32_t pc = regs[PC_REG];
     uint8_t op, mod, regA, regB, regC;
@@ -231,10 +208,7 @@ void Emulator::run() {
         if (execute_instruction()) break;
     }
     std::cout << "\nEmulated processor executed halt instruction\n";
-    print_state();
-}
 
-void Emulator::print_state() {
     std::cout << "Emulated processor state:\n";
     for (int i = 0; i < 16; ++i) {
         std::cout << " r" << std::dec << i << "=" << "0x"
