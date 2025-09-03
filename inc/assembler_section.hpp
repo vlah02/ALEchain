@@ -11,6 +11,7 @@ public:
                          unsigned char RegB = 0, unsigned char RegC = 0, signed short Disp = 0);
     void add_literal(const std::string& literal, int addend = 0, bool patchInPlace = false);
     void add_literal(int literal, bool patchInPlace = false);
+    void add_symbol_or_equ_literal(const std::string& sym);
 
     static Section* extract(const std::string& name);
 

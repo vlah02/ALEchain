@@ -12,32 +12,6 @@
 
 Section *section = Section::extract("txt");
 
-long tryResolveEqu(const std::string& name) {
-    auto plus = name.find('+');
-    auto minus = name.find('-');
-    std::string base = name;
-    int addend = 0;
-    if (plus != std::string::npos) {
-        addend = std::stoi(name.substr(plus + 1));
-        base = name.substr(0, plus);
-    } else if (minus != std::string::npos) {
-        addend = -std::stoi(name.substr(minus + 1));
-        base = name.substr(0, minus);
-    }
-    if (SymTab::equs.count(base))
-        return SymTab::equs[base] + addend;
-    return std::numeric_limits<long>::min();
-}
-
-void addSymbolOrEquLiteral(Section* section, const std::string& sym) {
-    long equVal = tryResolveEqu(sym);
-    if (equVal != std::numeric_limits<long>::min()) {
-        section->add_literal((int)equVal, true);
-    } else {
-        section->add_literal(sym, 0, false);
-    }
-}
-
 std::unordered_map<std::string, unsigned short> regs = {
         {"%r0",      0b0000},
         {"%status",  0b0000},
@@ -149,7 +123,7 @@ word: dotWORD vallist terminate {
         if (it->second == valtype::INT) {
             section->insertInt(std::stoul(it->first, nullptr, 0));
         } else if (it->second == valtype::SYM) {
-            long equVal = tryResolveEqu(it->first);
+            long equVal = SymTab::try_resolve_equ(it->first);
             if (equVal != std::numeric_limits<long>::min()) {
                 section->insertInt(equVal);
             } else {
@@ -234,42 +208,42 @@ int: INTERRUPT terminate {
 };
 
 call: CALL SYMBOL terminate {
-    addSymbolOrEquLiteral(section, $2);
+    section->add_symbol_or_equ_literal($2);
     section->add_instruction(0b0010, 0b0001, 15);
 } | CALL INTEGER terminate {
     section->add_literal(std::stoul($2, nullptr, 0));
     section->add_instruction(0b0010, 0b0001, 15);
 }
 jmp: JUMP SYMBOL terminate {
-    addSymbolOrEquLiteral(section, $2);
+    section->add_symbol_or_equ_literal($2);
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP INTEGER terminate {
     section->add_literal(std::stoul($2, nullptr, 0));
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP SYMBOL PLUS INTEGER terminate {
-    addSymbolOrEquLiteral(section, std::string($2) + "+" + std::string($4));
+    section->add_symbol_or_equ_literal(std::string($2) + "+" + std::string($4));
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP SYMBOL MINUS INTEGER terminate {
-    addSymbolOrEquLiteral(section, std::string($2) + "-" + std::string($4));
+    section->add_symbol_or_equ_literal(std::string($2) + "-" + std::string($4));
     section->add_instruction(0b0011, 0b1000, 15);
 }
 
 beq: BRANCH_EQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate {
-    addSymbolOrEquLiteral(section, $6);
+    section->add_symbol_or_equ_literal($6);
     section->add_instruction(0b0011, 0b1001, 15, regs[$2], regs[$4]);
 } | BRANCH_EQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate {
     section->add_literal(std::stoul($6, nullptr, 0));
     section->add_instruction(0b0011, 0b1001, 15, regs[$2], regs[$4]);
 }
 bne: BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate {
-    addSymbolOrEquLiteral(section, $6);
+    section->add_symbol_or_equ_literal($6);
     section->add_instruction(0b0011, 0b1010, 15, regs[$2], regs[$4]);
 } | BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate {
     section->add_literal(std::stoul($6, nullptr, 0));
     section->add_instruction(0b0011, 0b1010, 15, regs[$2], regs[$4]);
 }
 bgt: BRANCH_GREATER REGISTER COMMA REGISTER COMMA SYMBOL terminate {
-    addSymbolOrEquLiteral(section, $6);
+    section->add_symbol_or_equ_literal($6);
     section->add_instruction(0b0011, 0b1011, 15, regs[$2], regs[$4]);
 } | BRANCH_GREATER REGISTER COMMA REGISTER COMMA INTEGER terminate {
     section->add_literal(std::stoul($6, nullptr, 0));
@@ -334,7 +308,7 @@ st: STORE REGISTER COMMA INTEGER terminate {
     section->add_literal(std::stoul($4, nullptr, 0));
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[$2]);
 } | STORE REGISTER COMMA SYMBOL terminate {
-    addSymbolOrEquLiteral(section, $4);
+    section->add_symbol_or_equ_literal($4);
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[$2]);
 } | STORE REGISTER COMMA REGISTER terminate {
     section->add_instruction(0b1001, 0b0001, regs[$4], regs[$2]);
@@ -343,7 +317,7 @@ st: STORE REGISTER COMMA INTEGER terminate {
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS INTEGER RBRACKET terminate {
     section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2], std::stoul($7, nullptr, 0));
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS SYMBOL RBRACKET terminate {
-    addSymbolOrEquLiteral(section, $7);
+    section->add_symbol_or_equ_literal($7);
     section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2]);
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS REGISTER RBRACKET terminate {
     section->add_instruction(0b1000, 0b0000, regs[$5], regs[$7], regs[$2]);
@@ -353,7 +327,7 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
     section->add_literal(std::stoul($3, nullptr, 0));
     section->add_instruction(0b1001, 0b0010, regs[$5], 15);
 } | LOAD DOLLAR SYMBOL COMMA REGISTER terminate {
-    addSymbolOrEquLiteral(section, $3);
+    section->add_symbol_or_equ_literal($3);
     section->add_instruction(0b1001, 0b0010, regs[$5], 15);
 } | LOAD INTEGER COMMA REGISTER terminate {
     bool alt = (std::string($4) == "%r1");
@@ -367,7 +341,7 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
     bool alt = (std::string($4) == "%r1");
     unsigned char scratch = alt ? 2 : 1;
     section->add_instruction(0b1000, 0b0001, 14, 0, scratch, -1);
-    addSymbolOrEquLiteral(section, $2);
+    section->add_symbol_or_equ_literal($2);
     section->add_instruction(0b1001, 0b0010, scratch, 15);
     section->add_instruction(0b1001, 0b0010, regs[$4], scratch);
     section->add_instruction(0b1001, 0b0011, scratch, 14, 0, 1);

@@ -11,6 +11,7 @@ public:
     static void add_type(const std::string& symbol, const std::string& type);
     static void resolve_pending_equs();
     static void validate_weaks_or_die();
+    static long try_resolve_equ(const std::string& name);
     static void out(std::ostream& os);
 
     struct symOccurrence {

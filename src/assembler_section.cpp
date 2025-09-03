@@ -1,6 +1,7 @@
 #include "../inc/assembler_section.hpp"
 #include <bitset>
 #include <iostream>
+#include <limits>
 
 #include "../inc/assembler_symtab.hpp"
 
@@ -28,6 +29,15 @@ void Section::add_literal(const std::string& literal, int addend, bool patchInPl
 void Section::add_literal(int literal, bool patchInPlace) {
     fprintf(stderr, "add_literal(val=%d, patchInPlace=%d)\n", literal, patchInPlace);
     pool.push_back({data.size(), literal, "", 0, patchInPlace});
+}
+
+void Section::add_symbol_or_equ_literal(const std::string& sym) {
+    long equVal = SymTab::try_resolve_equ(sym);
+    if (equVal != std::numeric_limits<long>::min()) {
+        this->add_literal(static_cast<int>(equVal), true);
+    } else {
+        this->add_literal(sym, 0, false);
+    }
 }
 
 Section* Section::extract(const std::string& name) {
