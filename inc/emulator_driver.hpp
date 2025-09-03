@@ -4,11 +4,12 @@
 #include <chrono>
 #include "emulator_memory.hpp"
 #include "emulator_bus.hpp"
+#include "emulator_terminal.hpp"
 
 class Emulator {
 public:
     Emulator();
-    ~Emulator();
+    ~Emulator() = default;
 
     void load_memory(const std::string& hex_filename);
     void run();
@@ -30,10 +31,19 @@ private:
     uint32_t timer_cfg_value = 0;
     std::chrono::steady_clock::time_point timer_last;
 
-    termios orig_term{};
-    void setup_terminal();
-    void restore_terminal();
-    bool terminal_initialized = false;
+    HostTerminal term_guard;
 
-    uint32_t get_timer_period_ms(uint32_t cfg);
+    uint32_t get_timer_period_ms(uint32_t cfg) {
+        switch (cfg & 0x7) {
+        case 0: return 500;
+        case 1: return 1000;
+        case 2: return 1500;
+        case 3: return 2000;
+        case 4: return 5000;
+        case 5: return 10000;
+        case 6: return 30000;
+        case 7: return 60000;
+        default: return 500;
+        }
+    }
 };

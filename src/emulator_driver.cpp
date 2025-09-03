@@ -4,9 +4,6 @@
 #include <iomanip>
 #include <sstream>
 #include <cstring>
-#include <termios.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <chrono>
 #include "../inc/emulator_driver.hpp"
 #include "../inc/emulator_devices.hpp"
@@ -21,25 +18,10 @@ constexpr uint32_t CAUSE   = 2;
 
 #define REG(x) ((x) == 0 ? 0 : regs[x])
 
-uint32_t Emulator::get_timer_period_ms(uint32_t cfg) {
-    switch (cfg & 0x7) {
-        case 0: return 500;
-        case 1: return 1000;
-        case 2: return 1500;
-        case 3: return 2000;
-        case 4: return 5000;
-        case 5: return 10000;
-        case 6: return 30000;
-        case 7: return 60000;
-        default: return 500;
-    }
-}
-
 Emulator::Emulator() : bus(mem) {
     std::memset(regs, 0, sizeof(regs));
     std::memset(csr, 0, sizeof(csr));
     regs[PC_REG] = PC_START;
-    setup_terminal();
 
     timer_cfg_value = 0;
     timer_last = std::chrono::steady_clock::now();
@@ -47,26 +29,6 @@ Emulator::Emulator() : bus(mem) {
     bus.map(make_term_out());
     bus.map(make_term_in(term_in_value));
     bus.map(make_tim_cfg(timer_cfg_value, timer_last));
-}
-
-Emulator::~Emulator() {
-    restore_terminal();
-}
-
-void Emulator::setup_terminal() {
-    if (terminal_initialized) return;
-    tcgetattr(STDIN_FILENO, &orig_term);
-    struct termios new_term = orig_term;
-    new_term.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &new_term);
-    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
-    terminal_initialized = true;
-}
-
-void Emulator::restore_terminal() {
-    if (terminal_initialized)
-        tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
 }
 
 void Emulator::load_memory(const std::string& hex_filename) {
@@ -94,7 +56,7 @@ void Emulator::load_memory(const std::string& hex_filename) {
 }
 
 void Emulator::poll_terminal_input() {
-    int c = getchar();
+    int c = HostTerminal::read_char_nonblock();
     if (c != EOF) {
         term_in_value = static_cast<uint8_t>(c);
         csr[CAUSE] = 3;
