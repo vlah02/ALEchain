@@ -1,9 +1,9 @@
 #pragma once
-#include <cstdint>
 #include <string>
 #include <termios.h>
 #include <chrono>
 #include "emulator_memory.hpp"
+#include "emulator_bus.hpp"
 
 class Emulator {
 public:
@@ -21,15 +21,16 @@ private:
     void poll_terminal_input();
 
     uint32_t term_in_value = 0;
-    uint32_t regs[16];
-    uint32_t csr[3];
+    uint32_t regs[16]{};
+    uint32_t csr[3]{};
 
     Memory mem;
+    Bus bus;
 
     uint32_t timer_cfg_value = 0;
     std::chrono::steady_clock::time_point timer_last;
 
-    termios orig_term;
+    termios orig_term{};
     void setup_terminal();
     void restore_terminal();
     bool terminal_initialized = false;

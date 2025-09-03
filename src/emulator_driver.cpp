@@ -9,17 +9,15 @@
 #include <fcntl.h>
 #include <chrono>
 #include "../inc/emulator_driver.hpp"
+#include "../inc/emulator_devices.hpp"
 
 constexpr uint32_t PC_START = 0x40000000;
-constexpr uint32_t SP_REG = 14;
-constexpr uint32_t PC_REG = 15;
+constexpr uint32_t SP_REG   = 14;
+constexpr uint32_t PC_REG   = 15;
+
 constexpr uint32_t STATUS = 0;
 constexpr uint32_t HANDLER = 1;
-constexpr uint32_t CAUSE = 2;
-
-constexpr uint32_t TERM_OUT = 0xFFFFFF00;
-constexpr uint32_t TERM_IN  = 0xFFFFFF04;
-constexpr uint32_t TIM_CFG  = 0xFFFFFF10;
+constexpr uint32_t CAUSE   = 2;
 
 #define REG(x) ((x) == 0 ? 0 : regs[x])
 
@@ -37,7 +35,7 @@ uint32_t Emulator::get_timer_period_ms(uint32_t cfg) {
     }
 }
 
-Emulator::Emulator() {
+Emulator::Emulator() : bus(mem) {
     std::memset(regs, 0, sizeof(regs));
     std::memset(csr, 0, sizeof(csr));
     regs[PC_REG] = PC_START;
@@ -45,6 +43,10 @@ Emulator::Emulator() {
 
     timer_cfg_value = 0;
     timer_last = std::chrono::steady_clock::now();
+
+    bus.map(make_term_out());
+    bus.map(make_term_in(term_in_value));
+    bus.map(make_tim_cfg(timer_cfg_value, timer_last));
 }
 
 Emulator::~Emulator() {
@@ -71,7 +73,7 @@ void Emulator::load_memory(const std::string& hex_filename) {
     std::ifstream in(hex_filename);
     if (!in) {
         std::cerr << "Cannot open " << hex_filename << "\n";
-        exit(1);
+        std::exit(1);
     }
     std::string line;
     while (std::getline(in, line)) {
@@ -94,34 +96,17 @@ void Emulator::load_memory(const std::string& hex_filename) {
 void Emulator::poll_terminal_input() {
     int c = getchar();
     if (c != EOF) {
-        term_in_value = (uint8_t)c;
+        term_in_value = static_cast<uint8_t>(c);
         csr[CAUSE] = 3;
     }
 }
 
 uint32_t Emulator::load32(uint32_t address) {
-    if (address == TERM_IN) {
-        uint32_t value = term_in_value;
-        term_in_value = 0;
-        return value;
-    }
-    if (address == TIM_CFG) {
-        return timer_cfg_value;
-    }
-    return mem.load32(address);
+    return bus.read32(address);
 }
 
 void Emulator::store32(uint32_t address, uint32_t value) {
-    if (address == TERM_OUT) {
-        std::cout << static_cast<char>(value & 0xFF) << std::flush;
-        return;
-    }
-    if (address == TIM_CFG) {
-        timer_cfg_value = value;
-        timer_last = std::chrono::steady_clock::now();
-        return;
-    }
-    mem.store32(address, value);
+    bus.write32(address, value);
 }
 
 bool Emulator::execute_instruction() {
@@ -167,147 +152,111 @@ bool Emulator::execute_instruction() {
     switch (op) {
     case 0x0:
         return true;
+
     case 0x1:
-        regs[SP_REG] -= 4;
-        store32(regs[SP_REG], regs[PC_REG]);
-        regs[SP_REG] -= 4;
-        store32(regs[SP_REG], csr[STATUS]);
+        regs[SP_REG] -= 4; store32(regs[SP_REG], regs[PC_REG]);
+        regs[SP_REG] -= 4; store32(regs[SP_REG], csr[STATUS]);
         csr[CAUSE] = 4;
         csr[STATUS] &= ~1U;
         regs[PC_REG] = csr[HANDLER];
         break;
+
     case 0x2:
         switch (mod) {
         case 0x0:
-            regs[SP_REG] -= 4;
-            store32(regs[SP_REG], regs[PC_REG]);
-            regs[PC_REG] = (regA == 0 ? 0 : regs[regA]) + (regB == 0 ? 0 : regs[regB]) + disp;
+            regs[SP_REG] -= 4; store32(regs[SP_REG], regs[PC_REG]);
+            regs[PC_REG] = REG(regA) + REG(regB) + disp;
             break;
         case 0x1:
-            regs[SP_REG] -= 4;
-            store32(regs[SP_REG], regs[PC_REG]);
-            regs[PC_REG] = load32((regA == 0 ? 0 : regs[regA]) + (regB == 0 ? 0 : regs[regB]) + disp);
+            regs[SP_REG] -= 4; store32(regs[SP_REG], regs[PC_REG]);
+            regs[PC_REG] = load32(REG(regA) + REG(regB) + disp);
             break;
         }
         break;
+
     case 0x3:
         switch (mod) {
-        case 0x0:
-            regs[PC_REG] = (regA == 0 ? 0 : regs[regA]) + disp;
-            break;
-        case 0x1:
-            if ((regB == 0 ? 0 : regs[regB]) == (regC == 0 ? 0 : regs[regC]))
-                regs[PC_REG] = (regA == 0 ? 0 : regs[regA]) + disp;
-            break;
-        case 0x2:
-            if ((regB == 0 ? 0 : regs[regB]) != (regC == 0 ? 0 : regs[regC]))
-                regs[PC_REG] = (regA == 0 ? 0 : regs[regA]) + disp;
-            break;
-        case 0x3:
-            if ((int32_t)(regB == 0 ? 0 : regs[regB]) > (int32_t)(regC == 0 ? 0 : regs[regC]))
-                regs[PC_REG] = (regA == 0 ? 0 : regs[regA]) + disp;
-            break;
-        case 0x8:
-            regs[PC_REG] = load32((regA == 0 ? 0 : regs[regA]) + disp);
-            break;
-        case 0x9:
-            if ((regB == 0 ? 0 : regs[regB]) == (regC == 0 ? 0 : regs[regC]))
-                regs[PC_REG] = load32((regA == 0 ? 0 : regs[regA]) + disp);
-            break;
-        case 0xA:
-            if ((regB == 0 ? 0 : regs[regB]) != (regC == 0 ? 0 : regs[regC]))
-                regs[PC_REG] = load32((regA == 0 ? 0 : regs[regA]) + disp);
-            break;
-        case 0xB:
-            if ((int32_t)(regB == 0 ? 0 : regs[regB]) > (int32_t)(regC == 0 ? 0 : regs[regC]))
-                regs[PC_REG] = load32((regA == 0 ? 0 : regs[regA]) + disp);
-            break;
+        case 0x0: regs[PC_REG] = REG(regA) + disp; break;
+        case 0x1: if (REG(regB) == REG(regC)) regs[PC_REG] = REG(regA) + disp; break;
+        case 0x2: if (REG(regB) != REG(regC)) regs[PC_REG] = REG(regA) + disp; break;
+        case 0x3: if ((int32_t)REG(regB) > (int32_t)REG(regC)) regs[PC_REG] = REG(regA) + disp; break;
+        case 0x8: regs[PC_REG] = load32(REG(regA) + disp); break;
+        case 0x9: if (REG(regB) == REG(regC)) regs[PC_REG] = load32(REG(regA) + disp); break;
+        case 0xA: if (REG(regB) != REG(regC)) regs[PC_REG] = load32(REG(regA) + disp); break;
+        case 0xB: if ((int32_t)REG(regB) > (int32_t)REG(regC)) regs[PC_REG] = load32(REG(regA) + disp); break;
         }
         break;
-    case 0x4:
-        {
-            uint32_t tmp = (regB == 0 ? 0 : regs[regB]);
-            if (regB != 0) regs[regB] = (regC == 0 ? 0 : regs[regC]);
-            if (regC != 0) regs[regC] = tmp;
-        }
-        break;
+
+    case 0x4: {
+        uint32_t tmp = REG(regB);
+        if (regB != 0) regs[regB] = REG(regC);
+        if (regC != 0) regs[regC] = tmp;
+    } break;
+
     case 0x5:
         switch (mod) {
-        case 0x0: if (regA != 0) regs[regA] = (regB == 0 ? 0 : regs[regB]) + (regC == 0 ? 0 : regs[regC]); break;
-        case 0x1: if (regA != 0) regs[regA] = (regB == 0 ? 0 : regs[regB]) - (regC == 0 ? 0 : regs[regC]); break;
-        case 0x2: if (regA != 0) regs[regA] = (regB == 0 ? 0 : regs[regB]) * (regC == 0 ? 0 : regs[regC]); break;
-        case 0x3: if (regA != 0) regs[regA] = (regB == 0 ? 0 : regs[regB]) / (regC == 0 ? 0 : regs[regC]); break;
+        case 0x0: if (regA) regs[regA] = REG(regB) + REG(regC); break;
+        case 0x1: if (regA) regs[regA] = REG(regB) - REG(regC); break;
+        case 0x2: if (regA) regs[regA] = REG(regB) * REG(regC); break;
+        case 0x3: if (regA) regs[regA] = REG(regB) / REG(regC); break;
         }
         break;
+
     case 0x6:
         switch (mod) {
-        case 0x0: if (regA != 0) regs[regA] = ~((regB == 0 ? 0 : regs[regB])); break;
-        case 0x1: if (regA != 0) regs[regA] = (regB == 0 ? 0 : regs[regB]) & (regC == 0 ? 0 : regs[regC]); break;
-        case 0x2: if (regA != 0) regs[regA] = (regB == 0 ? 0 : regs[regB]) | (regC == 0 ? 0 : regs[regC]); break;
-        case 0x3: if (regA != 0) regs[regA] = (regB == 0 ? 0 : regs[regB]) ^ (regC == 0 ? 0 : regs[regC]); break;
+        case 0x0: if (regA) regs[regA] = ~REG(regB); break;
+        case 0x1: if (regA) regs[regA] = REG(regB) & REG(regC); break;
+        case 0x2: if (regA) regs[regA] = REG(regB) | REG(regC); break;
+        case 0x3: if (regA) regs[regA] = REG(regB) ^ REG(regC); break;
         }
         break;
+
     case 0x7:
         switch (mod) {
-        case 0x0: if (regA != 0) regs[regA] = (regB == 0 ? 0 : regs[regB]) << (regC == 0 ? 0 : regs[regC]); break;
-        case 0x1: if (regA != 0) regs[regA] = (regB == 0 ? 0 : regs[regB]) >> (regC == 0 ? 0 : regs[regC]); break;
+        case 0x0: if (regA) regs[regA] = REG(regB) << REG(regC); break;
+        case 0x1: if (regA) regs[regA] = REG(regB) >> REG(regC); break;
         }
         break;
+
     case 0x8:
         switch (mod) {
-        case 0x0:
-            store32((regA == 0 ? 0 : regs[regA]) + (regB == 0 ? 0 : regs[regB]) + disp, (regC == 0 ? 0 : regs[regC]));
-            break;
-        case 0x2:
-            store32(load32((regA == 0 ? 0 : regs[regA]) + (regB == 0 ? 0 : regs[regB]) + disp), (regC == 0 ? 0 : regs[regC]));
-            break;
+        case 0x0: store32(REG(regA) + REG(regB) + disp, REG(regC)); break;
+        case 0x2: store32(load32(REG(regA) + REG(regB) + disp), REG(regC)); break;
         case 0x1:
-            if (regA != 0) regs[regA] = (regs[regA]) + disp;
-            store32(regs[regA], (regC == 0 ? 0 : regs[regC]));
+            if (regA != 0) regs[regA] = regs[regA] + disp;
+            store32(regs[regA], REG(regC));
             break;
         }
         break;
+
     case 0x9:
         switch (mod) {
-        case 0x0:
-            if (regA != 0) regs[regA] = csr[regB];
-            break;
-        case 0x1:
-            if (regA != 0) regs[regA] = (regB == 0 ? 0 : regs[regB]) + disp;
-            break;
-        case 0x2:
-            if (regA != 0) regs[regA] = load32((regB == 0 ? 0 : regs[regB]) + (regC == 0 ? 0 : regs[regC]) + disp);
-            break;
+        case 0x0: if (regA) regs[regA] = csr[regB]; break;
+        case 0x1: if (regA) regs[regA] = REG(regB) + disp; break;
+        case 0x2: if (regA) regs[regA] = load32(REG(regB) + REG(regC) + disp); break;
         case 0x3:
-            if (regA != 0) regs[regA] = load32((regB == 0 ? 0 : regs[regB]));
-            if (regB != 0) regs[regB] = (regs[regB]) + disp;
+            if (regA) regs[regA] = load32(REG(regB));
+            if (regB) regs[regB] = regs[regB] + disp;
             break;
-        case 0x4:
-            csr[regA] = (regB == 0 ? 0 : regs[regB]);
-            break;
-        case 0x5:
-            csr[regA] = csr[regB] | disp;
-            break;
-        case 0x6:
-            csr[regA] = load32((regB == 0 ? 0 : regs[regB]) + (regC == 0 ? 0 : regs[regC]) + disp);
-            break;
+        case 0x4: csr[regA] = REG(regB); break;
+        case 0x5: csr[regA] = csr[regB] | disp; break;
+        case 0x6: csr[regA] = load32(REG(regB) + REG(regC) + disp); break;
         case 0x7:
-            csr[regA] = load32((regB == 0 ? 0 : regs[regB]));
-            if (regB != 0) regs[regB] = (regs[regB]) + disp;
+            csr[regA] = load32(REG(regB));
+            if (regB) regs[regB] = regs[regB] + disp;
             break;
         }
         break;
     }
+
     regs[0] = 0;
 
     if ((csr[CAUSE] == 2 || csr[CAUSE] == 3) && (csr[STATUS] & (1 << 2)) == 0) {
         if (csr[CAUSE] == 2 && (csr[STATUS] & 1) != 0) return false;
         if (csr[CAUSE] == 3 && (csr[STATUS] & (1 << 1)) != 0) return false;
 
-        regs[SP_REG] -= 4;
-        store32(regs[SP_REG], regs[PC_REG]);
-        regs[SP_REG] -= 4;
-        store32(regs[SP_REG], csr[STATUS]);
+        regs[SP_REG] -= 4; store32(regs[SP_REG], regs[PC_REG]);
+        regs[SP_REG] -= 4; store32(regs[SP_REG], csr[STATUS]);
         csr[STATUS] |= (1 << 2);
         regs[PC_REG] = csr[HANDLER];
     }
@@ -317,8 +266,7 @@ bool Emulator::execute_instruction() {
 
 void Emulator::run() {
     while (true) {
-        if (execute_instruction())
-            break;
+        if (execute_instruction()) break;
     }
     std::cout << "\nEmulated processor executed halt instruction\n";
     print_state();
