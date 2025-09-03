@@ -6,6 +6,8 @@
 #include <cstring>
 #include <memory>
 #include "../inc/emulator_driver.hpp"
+#include "../inc/emulator_terminal.hpp"
+#include "../inc/emulator_timer.hpp"
 #include "../inc/emulator_isa.hpp"
 
 constexpr uint32_t PC_START = 0x40000000;
@@ -27,7 +29,6 @@ Emulator::Emulator() : bus(mem) {
         TIM_CFG,
         [this]{ csr[CAUSE] = 2; }
     );
-    timer = timer_dev.get();
     bus.map(std::move(timer_dev));
 
     auto terminal_dev = std::make_unique<TerminalDevice>(
@@ -36,7 +37,6 @@ Emulator::Emulator() : bus(mem) {
         HostTerminal::read_char_nonblock,
         [](uint8_t ch){ std::cout << static_cast<char>(ch) << std::flush; }
     );
-    terminal = terminal_dev.get();
     bus.map(std::move(terminal_dev));
 }
 
@@ -65,8 +65,7 @@ void Emulator::load_memory(const std::string& hex_filename) const {
 }
 
 bool Emulator::execute_instruction() {
-    if (terminal) terminal->tick();
-    if (timer) timer->tick();
+    bus.tick();
 
     uint32_t pc = regs[PC_REG];
 

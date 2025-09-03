@@ -3,8 +3,6 @@
 #include "emulator_memory.hpp"
 #include "emulator_bus.hpp"
 #include "emulator_termios.hpp"
-#include "emulator_terminal.hpp"
-#include "emulator_timer.hpp"
 
 class Emulator {
 public:
@@ -30,7 +28,4 @@ private:
     Bus bus;
 
     HostTerminal termios;
-
-    TerminalDevice* terminal{nullptr};
-    TimerDevice* timer{nullptr};
 };

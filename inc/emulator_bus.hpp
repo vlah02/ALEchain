@@ -24,6 +24,10 @@ public:
         return true;
     }
 
+    void tick() const {
+        for (const auto& d : devices_) d->tick();
+    }
+
     uint32_t read32(uint32_t addr) const {
         for (auto& d : devices_) {
             if (d->contains(addr)) return d->read32(addr - d->base());
