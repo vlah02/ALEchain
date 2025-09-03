@@ -1,9 +1,9 @@
 #pragma once
 #include <cstdint>
-#include <vector>
 #include <string>
 #include <termios.h>
 #include <chrono>
+#include "emulator_memory.hpp"
 
 class Emulator {
 public:
@@ -23,7 +23,8 @@ private:
     uint32_t term_in_value = 0;
     uint32_t regs[16];
     uint32_t csr[3];
-    std::vector<uint8_t> mem;
+
+    Memory mem;
 
     uint32_t timer_cfg_value = 0;
     std::chrono::steady_clock::time_point timer_last;

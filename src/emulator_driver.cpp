@@ -4,12 +4,11 @@
 #include <iomanip>
 #include <sstream>
 #include <cstring>
-#include <vector>
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <chrono>
-#include "../inc/emulator.hpp"
+#include "../inc/emulator_driver.hpp"
 
 constexpr uint32_t PC_START = 0x40000000;
 constexpr uint32_t SP_REG = 14;
@@ -39,9 +38,8 @@ uint32_t Emulator::get_timer_period_ms(uint32_t cfg) {
 }
 
 Emulator::Emulator() {
-    mem.resize(1ULL << 32, 0);
-    memset(regs, 0, sizeof(regs));
-    memset(csr, 0, sizeof(csr));
+    std::memset(regs, 0, sizeof(regs));
+    std::memset(csr, 0, sizeof(csr));
     regs[PC_REG] = PC_START;
     setup_terminal();
 
@@ -82,10 +80,13 @@ void Emulator::load_memory(const std::string& hex_filename) {
         uint32_t addr;
         char colon;
         ss >> std::hex >> addr >> colon;
+        if (!ss || colon != ':') continue;
+
         for (int i = 0; i < 8; ++i) {
-            int byte;
+            unsigned int byte;
             ss >> std::hex >> byte;
-            mem[addr + i] = (uint8_t)byte;
+            if (!ss) break;
+            mem.store8(addr + i, static_cast<uint8_t>(byte));
         }
     }
 }
@@ -107,16 +108,12 @@ uint32_t Emulator::load32(uint32_t address) {
     if (address == TIM_CFG) {
         return timer_cfg_value;
     }
-    uint32_t ret = 0;
-    for (int i = 0; i < 4; ++i) {
-        ret |= (mem[address + i] << (i * 8));
-    }
-    return ret;
+    return mem.load32(address);
 }
 
 void Emulator::store32(uint32_t address, uint32_t value) {
     if (address == TERM_OUT) {
-        std::cout << (char)(value & 0xFF) << std::flush;
+        std::cout << static_cast<char>(value & 0xFF) << std::flush;
         return;
     }
     if (address == TIM_CFG) {
@@ -124,10 +121,7 @@ void Emulator::store32(uint32_t address, uint32_t value) {
         timer_last = std::chrono::steady_clock::now();
         return;
     }
-    mem[address + 0] = value & 0xFF;
-    mem[address + 1] = (value >> 8) & 0xFF;
-    mem[address + 2] = (value >> 16) & 0xFF;
-    mem[address + 3] = (value >> 24) & 0xFF;
+    mem.store32(address, value);
 }
 
 bool Emulator::execute_instruction() {
@@ -147,13 +141,24 @@ bool Emulator::execute_instruction() {
     uint8_t op, mod, regA, regB, regC;
     int16_t disp;
 
-    op  = (mem[pc + 0] & 0xF0) >> 4;
-    mod = (mem[pc + 0] & 0x0F);
-    regA = (mem[pc + 1] & 0xF0) >> 4;
-    regB = (mem[pc + 1] & 0x0F);
-    regC = (mem[pc + 2] & 0xF0) >> 4;
-    disp = ((mem[pc + 2] & 0x0F) << 8) | mem[pc + 3];
-    if (disp & 0x800) disp |= 0xF000;
+    uint32_t inst = mem.load32(pc);
+    uint8_t b0 =  inst        & 0xFF;
+    uint8_t b1 = (inst >> 8)  & 0xFF;
+    uint8_t b2 = (inst >> 16) & 0xFF;
+    uint8_t b3 = (inst >> 24) & 0xFF;
+
+    op   = (b0 >> 4) & 0x0F;
+    mod  =  b0       & 0x0F;
+    regA = (b1 >> 4) & 0x0F;
+    regB =  b1       & 0x0F;
+    regC = (b2 >> 4) & 0x0F;
+
+    uint16_t udisp = static_cast<uint16_t>(((b2 & 0x0F) << 8) | b3);
+    if (udisp & 0x0800) {
+        disp = static_cast<int16_t>(udisp | 0xF000);
+    } else {
+        disp = static_cast<int16_t>(udisp);
+    }
 
     if (op != 0)
         regs[PC_REG] += 4;
@@ -324,7 +329,7 @@ void Emulator::print_state() {
     for (int i = 0; i < 16; ++i) {
         std::cout << " r" << std::dec << i << "=" << "0x"
                   << std::setw(8) << std::setfill('0') << std::hex << regs[i];
-        if (i % 4 == 3) std::cout << std::endl;
+        if (i % 4 == 3) std::cout << '\n';
         else std::cout << "   ";
     }
 }
