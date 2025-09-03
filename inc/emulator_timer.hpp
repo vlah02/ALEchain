@@ -42,18 +42,11 @@ public:
     }
 
 private:
-    static uint32_t period_ms(uint32_t cfg) {
-        switch (cfg & 0x7u) {
-        case 0: return 500;
-        case 1: return 1000;
-        case 2: return 1500;
-        case 3: return 2000;
-        case 4: return 5000;
-        case 5: return 10000;
-        case 6: return 30000;
-        case 7: return 60000;
-        }
-        return 0;
+    static uint32_t period_ms(uint32_t cfg) noexcept {
+        static constexpr uint32_t table[8] = {
+            500, 1000, 1500, 2000, 5000, 10000, 30000, 60000    
+        };
+        return table[cfg & 0x7u];
     }
 
     uint32_t cfg_{0};
