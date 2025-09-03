@@ -24,14 +24,14 @@ public:
         return true;
     }
 
-    uint32_t read32(uint32_t addr) {
+    uint32_t read32(uint32_t addr) const {
         for (auto& d : devices_) {
             if (d->contains(addr)) return d->read32(addr - d->base());
         }
         return ram_.load32(addr);
     }
 
-    void write32(uint32_t addr, uint32_t val) {
+    void write32(uint32_t addr, uint32_t val) const {
         for (auto& d : devices_) {
             if (d->contains(addr)) { d->write32(addr - d->base(), val); return; }
         }

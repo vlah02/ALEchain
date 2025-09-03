@@ -14,25 +14,25 @@ public:
         return p ? p->data[off] : 0;
     }
 
-    void store8(uint32_t addr, uint8_t v) {
+    void store8(uint32_t addr, uint8_t v) const {
         auto [p, off] = ensure(addr);
         p->data[off] = v;
     }
 
     uint32_t load32(uint32_t addr) const {
         uint32_t v = 0;
-        v |= uint32_t(load8(addr + 0)) << 0;
-        v |= uint32_t(load8(addr + 1)) << 8;
-        v |= uint32_t(load8(addr + 2)) << 16;
-        v |= uint32_t(load8(addr + 3)) << 24;
+        v |= static_cast<uint32_t>(load8(addr + 0)) << 0;
+        v |= static_cast<uint32_t>(load8(addr + 1)) << 8;
+        v |= static_cast<uint32_t>(load8(addr + 2)) << 16;
+        v |= static_cast<uint32_t>(load8(addr + 3)) << 24;
         return v;
     }
 
-    void store32(uint32_t addr, uint32_t v) {
-        store8(addr + 0, uint8_t(v & 0xFF));
-        store8(addr + 1, uint8_t((v >> 8) & 0xFF));
-        store8(addr + 2, uint8_t((v >> 16) & 0xFF));
-        store8(addr + 3, uint8_t((v >> 24) & 0xFF));
+    void store32(uint32_t addr, uint32_t v) const {
+        store8(addr + 0, static_cast<uint8_t>(v & 0xFF));
+        store8(addr + 1, static_cast<uint8_t>((v >> 8) & 0xFF));
+        store8(addr + 2, static_cast<uint8_t>((v >> 16) & 0xFF));
+        store8(addr + 3, static_cast<uint8_t>((v >> 24) & 0xFF));
     }
 
 private:
@@ -47,7 +47,7 @@ private:
         return { it == pages.end() ? nullptr : it->second.get(), offset(addr) };
     }
 
-    std::pair<MemPage*, uint32_t> ensure(uint32_t addr) {
+    std::pair<MemPage*, uint32_t> ensure(uint32_t addr) const {
         auto key = pageBase(addr);
         auto it = pages.find(key);
         if (it == pages.end()) {

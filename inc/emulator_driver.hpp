@@ -11,14 +11,14 @@ public:
     Emulator();
     ~Emulator() = default;
 
-    void load_memory(const std::string& hex_filename);
+    void load_memory(const std::string& hex_filename) const;
     void run();
 
 private:
-    uint32_t load32(uint32_t address) {
+    uint32_t load32(uint32_t address) const {
         return bus.read32(address);
     }
-    void store32(uint32_t address, uint32_t value) {
+    void store32(uint32_t address, uint32_t value) const {
         bus.write32(address, value);
     }
     bool execute_instruction();

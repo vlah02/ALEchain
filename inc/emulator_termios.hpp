@@ -26,7 +26,7 @@ public:
     static int read_char_nonblock() {
         unsigned char c;
         ssize_t n = ::read(STDIN_FILENO, &c, 1);
-        return (n == 1) ? int(c) : EOF;
+        return (n == 1) ? static_cast<int>(c) : EOF;
     }
 private:
     termios orig_{};

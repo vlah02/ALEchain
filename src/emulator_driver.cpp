@@ -34,13 +34,13 @@ Emulator::Emulator() : bus(mem) {
         TERM_CFG,
         [this]{ csr[CAUSE] = 3; },
         HostTerminal::read_char_nonblock,
-        [](uint8_t ch){ std::cout << (char)ch << std::flush; }
+        [](uint8_t ch){ std::cout << static_cast<char>(ch) << std::flush; }
     );
     terminal = terminal_dev.get();
     bus.map(std::move(terminal_dev));
 }
 
-void Emulator::load_memory(const std::string& hex_filename) {
+void Emulator::load_memory(const std::string& hex_filename) const {
     std::ifstream in(hex_filename);
     if (!in) {
         std::cerr << "Cannot open " << hex_filename << "\n";
@@ -69,8 +69,6 @@ bool Emulator::execute_instruction() {
     if (timer) timer->tick();
 
     uint32_t pc = regs[PC_REG];
-    uint8_t op, mod, regA, regB, regC;
-    int16_t disp;
 
     uint32_t inst = load32(pc);
     uint8_t b0 =  inst        & 0xFF;
@@ -78,11 +76,12 @@ bool Emulator::execute_instruction() {
     uint8_t b2 = (inst >> 16) & 0xFF;
     uint8_t b3 = (inst >> 24) & 0xFF;
 
-    op   = (b0 >> 4) & 0x0F;
-    mod  =  b0       & 0x0F;
-    regA = (b1 >> 4) & 0x0F;
-    regB =  b1       & 0x0F;
-    regC = (b2 >> 4) & 0x0F;
+    uint8_t op =   (b0 >> 4) & 0x0F;
+    uint8_t mod =         b0 & 0x0F;
+    uint8_t regA = (b1 >> 4) & 0x0F;
+    uint8_t regB =        b1 & 0x0F;
+    uint8_t regC = (b2 >> 4) & 0x0F;
+    int16_t disp;
 
     uint16_t udisp = static_cast<uint16_t>(((b2 & 0x0F) << 8) | b3);
     if (udisp & 0x0800) {
@@ -133,7 +132,7 @@ bool Emulator::execute_instruction() {
             if (REG(regB) != REG(regC)) regs[PC_REG] = REG(regA) + disp;
             break;
         case JUMP_MOD::BR_GT_SIGNED:
-            if ((int32_t)REG(regB) > (int32_t)REG(regC)) regs[PC_REG] = REG(regA) + disp;
+            if (static_cast<int32_t>(REG(regB)) > static_cast<int32_t>(REG(regC))) regs[PC_REG] = REG(regA) + disp;
             break;
         case JUMP_MOD::IND:
             regs[PC_REG] = load32(REG(regA) + disp);
@@ -145,7 +144,7 @@ bool Emulator::execute_instruction() {
             if (REG(regB) != REG(regC)) regs[PC_REG] = load32(REG(regA) + disp);
             break;
         case JUMP_MOD::BR_GT_IND_SIGNED:
-            if ((int32_t)REG(regB) > (int32_t)REG(regC)) regs[PC_REG] = load32(REG(regA) + disp);
+            if (static_cast<int32_t>(REG(regB)) > static_cast<int32_t>(REG(regC))) regs[PC_REG] = load32(REG(regA) + disp);
             break;
         }
     } break;
