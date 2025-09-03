@@ -6,6 +6,7 @@
 #include <cstring>
 #include <memory>
 #include "../inc/emulator_driver.hpp"
+#include "../inc/emulator_isa.hpp"
 
 constexpr uint32_t PC_START = 0x40000000;
 constexpr uint32_t SP_REG   = 14;
@@ -90,15 +91,16 @@ bool Emulator::execute_instruction() {
         disp = static_cast<int16_t>(udisp);
     }
 
-    if (op != 0)
+    auto opcode = static_cast<OPCODE>(op);
+    if (opcode != OPCODE::HALT)
         regs[PC_REG] += 4;
     regs[0] = 0;
 
-    switch (op) {
-    case 0x0:
+    switch (opcode) {
+    case OPCODE::HALT:
         return true;
 
-    case 0x1:
+    case OPCODE::INT:
         regs[SP_REG] -= 4; store32(regs[SP_REG], regs[PC_REG]);
         regs[SP_REG] -= 4; store32(regs[SP_REG], csr[STATUS]);
         csr[CAUSE] = 4;
@@ -106,91 +108,126 @@ bool Emulator::execute_instruction() {
         regs[PC_REG] = csr[HANDLER];
         break;
 
-    case 0x2:
-        switch (mod) {
-        case 0x0:
+    case OPCODE::CALL: {
+        switch (static_cast<CALL_MOD>(mod)) {
+        case CALL_MOD::LINK_TO_REGS_PLUS_IMM:
             regs[SP_REG] -= 4; store32(regs[SP_REG], regs[PC_REG]);
             regs[PC_REG] = REG(regA) + REG(regB) + disp;
             break;
-        case 0x1:
+        case CALL_MOD::LINK_TO_MEM_AT_REGS_PLUS_IMM:
             regs[SP_REG] -= 4; store32(regs[SP_REG], regs[PC_REG]);
             regs[PC_REG] = load32(REG(regA) + REG(regB) + disp);
             break;
         }
-        break;
+    } break;
 
-    case 0x3:
-        switch (mod) {
-        case 0x0: regs[PC_REG] = REG(regA) + disp; break;
-        case 0x1: if (REG(regB) == REG(regC)) regs[PC_REG] = REG(regA) + disp; break;
-        case 0x2: if (REG(regB) != REG(regC)) regs[PC_REG] = REG(regA) + disp; break;
-        case 0x3: if ((int32_t)REG(regB) > (int32_t)REG(regC)) regs[PC_REG] = REG(regA) + disp; break;
-        case 0x8: regs[PC_REG] = load32(REG(regA) + disp); break;
-        case 0x9: if (REG(regB) == REG(regC)) regs[PC_REG] = load32(REG(regA) + disp); break;
-        case 0xA: if (REG(regB) != REG(regC)) regs[PC_REG] = load32(REG(regA) + disp); break;
-        case 0xB: if ((int32_t)REG(regB) > (int32_t)REG(regC)) regs[PC_REG] = load32(REG(regA) + disp); break;
+    case OPCODE::JUMP: {
+        switch (static_cast<JUMP_MOD>(mod)) {
+        case JUMP_MOD::ABS:
+            regs[PC_REG] = REG(regA) + disp;
+            break;
+        case JUMP_MOD::BR_EQ:
+            if (REG(regB) == REG(regC)) regs[PC_REG] = REG(regA) + disp;
+            break;
+        case JUMP_MOD::BR_NE:
+            if (REG(regB) != REG(regC)) regs[PC_REG] = REG(regA) + disp;
+            break;
+        case JUMP_MOD::BR_GT_SIGNED:
+            if ((int32_t)REG(regB) > (int32_t)REG(regC)) regs[PC_REG] = REG(regA) + disp;
+            break;
+        case JUMP_MOD::IND:
+            regs[PC_REG] = load32(REG(regA) + disp);
+            break;
+        case JUMP_MOD::BR_EQ_IND:
+            if (REG(regB) == REG(regC)) regs[PC_REG] = load32(REG(regA) + disp);
+            break;
+        case JUMP_MOD::BR_NE_IND:
+            if (REG(regB) != REG(regC)) regs[PC_REG] = load32(REG(regA) + disp);
+            break;
+        case JUMP_MOD::BR_GT_IND_SIGNED:
+            if ((int32_t)REG(regB) > (int32_t)REG(regC)) regs[PC_REG] = load32(REG(regA) + disp);
+            break;
         }
-        break;
+    } break;
 
-    case 0x4: {
+    case OPCODE::XCHG: {
         uint32_t tmp = REG(regB);
         if (regB != 0) regs[regB] = REG(regC);
         if (regC != 0) regs[regC] = tmp;
     } break;
 
-    case 0x5:
-        switch (mod) {
-        case 0x0: if (regA) regs[regA] = REG(regB) + REG(regC); break;
-        case 0x1: if (regA) regs[regA] = REG(regB) - REG(regC); break;
-        case 0x2: if (regA) regs[regA] = REG(regB) * REG(regC); break;
-        case 0x3: if (regA) regs[regA] = REG(regB) / REG(regC); break;
+    case OPCODE::ALU: {
+        switch (static_cast<ALU_MOD>(mod)) {
+        case ALU_MOD::ADD: if (regA) regs[regA] = REG(regB) + REG(regC); break;
+        case ALU_MOD::SUB: if (regA) regs[regA] = REG(regB) - REG(regC); break;
+        case ALU_MOD::MUL: if (regA) regs[regA] = REG(regB) * REG(regC); break;
+        case ALU_MOD::DIV: if (regA) regs[regA] = REG(regB) / REG(regC); break;
         }
-        break;
+    } break;
 
-    case 0x6:
-        switch (mod) {
-        case 0x0: if (regA) regs[regA] = ~REG(regB); break;
-        case 0x1: if (regA) regs[regA] = REG(regB) & REG(regC); break;
-        case 0x2: if (regA) regs[regA] = REG(regB) | REG(regC); break;
-        case 0x3: if (regA) regs[regA] = REG(regB) ^ REG(regC); break;
+    case OPCODE::LOGIC: {
+        switch (static_cast<LOGIC_MOD>(mod)) {
+        case LOGIC_MOD::NOT: if (regA) regs[regA] = ~REG(regB); break;
+        case LOGIC_MOD::AND: if (regA) regs[regA] = REG(regB) & REG(regC); break;
+        case LOGIC_MOD::OR:  if (regA) regs[regA] = REG(regB) | REG(regC); break;
+        case LOGIC_MOD::XOR: if (regA) regs[regA] = REG(regB) ^ REG(regC); break;
         }
-        break;
+    } break;
 
-    case 0x7:
-        switch (mod) {
-        case 0x0: if (regA) regs[regA] = REG(regB) << REG(regC); break;
-        case 0x1: if (regA) regs[regA] = REG(regB) >> REG(regC); break;
+    case OPCODE::SHIFT: {
+        switch (static_cast<SHIFT_MOD>(mod)) {
+        case SHIFT_MOD::SHL: if (regA) regs[regA] = REG(regB) << REG(regC); break;
+        case SHIFT_MOD::SHR: if (regA) regs[regA] = REG(regB) >> REG(regC); break;
         }
-        break;
+    } break;
 
-    case 0x8:
-        switch (mod) {
-        case 0x0: store32(REG(regA) + REG(regB) + disp, REG(regC)); break;
-        case 0x2: store32(load32(REG(regA) + REG(regB) + disp), REG(regC)); break;
-        case 0x1:
+    case OPCODE::STORE: {
+        switch (static_cast<STORE_MOD>(mod)) {
+        case STORE_MOD::TO_ADDR_REGS_PLUS_IMM:
+            store32(REG(regA) + REG(regB) + disp, REG(regC));
+            break;
+        case STORE_MOD::TO_ADDR_AT_MEM_OF_REGS_PLUS_IMM:
+            store32(load32(REG(regA) + REG(regB) + disp), REG(regC));
+            break;
+        case STORE_MOD::PREINC_AND_STORE:
             if (regA != 0) regs[regA] = regs[regA] + disp;
             store32(regs[regA], REG(regC));
             break;
         }
-        break;
+    } break;
 
-    case 0x9:
-        switch (mod) {
-        case 0x0: if (regA) regs[regA] = csr[regB]; break;
-        case 0x1: if (regA) regs[regA] = REG(regB) + disp; break;
-        case 0x2: if (regA) regs[regA] = load32(REG(regB) + REG(regC) + disp); break;
-        case 0x3:
+    case OPCODE::LOAD: {
+        switch (static_cast<LOAD_MOD>(mod)) {
+        case LOAD_MOD::CSR_READ:
+            if (regA) regs[regA] = csr[regB];
+            break;
+        case LOAD_MOD::ADD_IMMEDIATE:
+            if (regA) regs[regA] = REG(regB) + disp;
+            break;
+        case LOAD_MOD::LOAD_FROM_ADDR:
+            if (regA) regs[regA] = load32(REG(regB) + REG(regC) + disp);
+            break;
+        case LOAD_MOD::LOAD_FROM_REG_AND_POSTINC:
             if (regA) regs[regA] = load32(REG(regB));
             if (regB) regs[regB] = regs[regB] + disp;
             break;
-        case 0x4: csr[regA] = REG(regB); break;
-        case 0x5: csr[regA] = csr[regB] | disp; break;
-        case 0x6: csr[regA] = load32(REG(regB) + REG(regC) + disp); break;
-        case 0x7:
+        case LOAD_MOD::CSR_WRITE_FROM_REG:
+            csr[regA] = REG(regB);
+            break;
+        case LOAD_MOD::CSR_OR_IMMEDIATE:
+            csr[regA] = csr[regB] | disp;
+            break;
+        case LOAD_MOD::CSR_WRITE_FROM_ADDR:
+            csr[regA] = load32(REG(regB) + REG(regC) + disp);
+            break;
+        case LOAD_MOD::CSR_WRITE_FROM_REG_AND_POSTINC:
             csr[regA] = load32(REG(regB));
             if (regB) regs[regB] = regs[regB] + disp;
             break;
         }
+    } break;
+
+    default:
         break;
     }
 
