@@ -18,7 +18,6 @@ constexpr uint32_t CAUSE   = 2;
 #define REG(x) ((x) == 0 ? 0 : regs[x])
 
 Emulator::Emulator() : bus(mem) {
-
     std::memset(regs, 0, sizeof(regs));
     std::memset(csr,  0, sizeof(csr));
     regs[PC_REG] = PC_START;
@@ -38,7 +37,6 @@ Emulator::Emulator() : bus(mem) {
     );
     terminal = terminal_dev.get();
     bus.map(std::move(terminal_dev));
-
 }
 
 void Emulator::load_memory(const std::string& hex_filename) {

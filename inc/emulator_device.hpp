@@ -8,13 +8,13 @@ public:
       : base_(base), size_(size), name_(name) {}
     virtual ~Device() = default;
 
-    bool contains(const uint32_t addr) const {
-        return addr >= base_ && addr < base_ + size_;
+    [[nodiscard]] bool contains(uint32_t addr) const noexcept {
+        return (addr - base_) < size_;
     }
 
-    uint32_t base() const noexcept { return base_; }
-    uint32_t size() const noexcept { return size_; }
-    std::string_view name() const noexcept { return name_; }
+    [[nodiscard]] uint32_t base() const noexcept { return base_; }
+    [[nodiscard]] uint32_t size() const noexcept { return size_; }
+    [[nodiscard]] std::string_view name() const noexcept { return name_; }
 
     virtual uint32_t read32(uint32_t off) = 0;
     virtual void write32(uint32_t off, uint32_t val) = 0;

@@ -2,6 +2,7 @@
 #include <vector>
 #include <utility>
 #include <memory>
+#include <algorithm>
 #include "emulator_memory.hpp"
 #include "emulator_device.hpp"
 
@@ -9,7 +10,19 @@ class Bus {
 public:
     explicit Bus(Memory& ram) : ram_(ram) {}
 
-    void map(std::unique_ptr<Device> d) { devices_.push_back(std::move(d)); }
+    bool map(std::unique_ptr<Device> d) {
+        const auto b = d->base();
+        const auto s = d->size();
+        for (const auto& x : devices_) {
+            const bool overlap =
+                (b - x->base()) < x->size() || (x->base() - b) < s;
+            if (overlap) return false;
+        }
+        devices_.push_back(std::move(d));
+        std::sort(devices_.begin(), devices_.end(),
+                  [](const auto& a, const auto& b){ return a->base() < b->base(); });
+        return true;
+    }
 
     uint32_t read32(uint32_t addr) {
         for (auto& d : devices_) {
