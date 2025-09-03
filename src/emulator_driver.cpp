@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <sstream>
 #include <cstring>
-#include <chrono>
+#include <memory>
 #include "../inc/emulator_driver.hpp"
 
 constexpr uint32_t PC_START = 0x40000000;
@@ -17,20 +17,28 @@ constexpr uint32_t CAUSE   = 2;
 
 #define REG(x) ((x) == 0 ? 0 : regs[x])
 
-Emulator::Emulator()
-    : bus(mem)
-    , timer(TIM_CFG, [this]{ csr[CAUSE] = 2; })
-    , term(TERM_CFG,
-            [this]{ csr[CAUSE] = 3; },
-            HostTerminal::read_char_nonblock,
-            [](uint8_t ch){ std::cout << static_cast<char>(ch) << std::flush; })
-{
+Emulator::Emulator() : bus(mem) {
+
     std::memset(regs, 0, sizeof(regs));
-    std::memset(csr, 0, sizeof(csr));
+    std::memset(csr,  0, sizeof(csr));
     regs[PC_REG] = PC_START;
 
-    bus.map(timer.mmio());
-    bus.map(term.mmio());
+    auto timer_dev = std::make_unique<TimerDevice>(
+        TIM_CFG,
+        [this]{ csr[CAUSE] = 2; }
+    );
+    timer = timer_dev.get();
+    bus.map(std::move(timer_dev));
+
+    auto terminal_dev = std::make_unique<TerminalDevice>(
+        TERM_CFG,
+        [this]{ csr[CAUSE] = 3; },
+        HostTerminal::read_char_nonblock,
+        [](uint8_t ch){ std::cout << (char)ch << std::flush; }
+    );
+    terminal = terminal_dev.get();
+    bus.map(std::move(terminal_dev));
+
 }
 
 void Emulator::load_memory(const std::string& hex_filename) {
@@ -58,8 +66,8 @@ void Emulator::load_memory(const std::string& hex_filename) {
 }
 
 bool Emulator::execute_instruction() {
-    term.tick();
-    timer.tick(std::chrono::steady_clock::now());
+    if (terminal) terminal->tick();
+    if (timer) timer->tick();
 
     uint32_t pc = regs[PC_REG];
     uint8_t op, mod, regA, regB, regC;

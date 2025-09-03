@@ -31,6 +31,6 @@ private:
 
     HostTerminal termios;
 
-    TimerDevice timer;
-    TerminalDevice term;
+    TerminalDevice* terminal{nullptr};
+    TimerDevice* timer{nullptr};
 };

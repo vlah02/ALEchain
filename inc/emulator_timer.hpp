@@ -1,47 +1,45 @@
 #pragma once
+#include <cstdint>
 #include <chrono>
 #include <functional>
-#include "emulator_bus.hpp"
+#include "emulator_device.hpp"
 
-constexpr uint32_t TIM_CFG  = 0xFFFFFF10;
+constexpr uint32_t TIM_CFG = 0xFFFFFF10;
 
-class TimerDevice {
+class TimerDevice : public Device {
 public:
+    using IrqFn = std::function<void()>;
     using clock = std::chrono::steady_clock;
-    using time_point = clock::time_point;
 
-    explicit TimerDevice(uint32_t base, std::function<void()> cb)
-        : base_(base), raise_irq_(std::move(cb)) { reset(); }
-
-    void reset() {
+    explicit TimerDevice(uint32_t base, IrqFn irq)
+        : Device(base, 4, std::string_view{"TIM_CFG"})
+        , raise_irq_(std::move(irq))
+    {
         cfg_  = 0;
         last_ = clock::now();
     }
 
-    Mmio mmio() {
-        return Mmio{
-            base_, 4,
-            [this](uint32_t) -> uint32_t { return cfg_; },
-            [this](uint32_t, uint32_t v) {
-                cfg_ = v;
-                last_ = clock::now();
-            },
-            "TIM_CFG"
-        };
-    }
+    void tick() override {
+        const auto now = clock::now();
+        const uint32_t per = period_ms(cfg_);
+        if (per == 0) return;
 
-    void tick(time_point now) {
-        if ((cfg_ & 0x7u) <= 7u) {
-            const uint32_t per = period_ms(cfg_);
-            const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_).count();
-            if (elapsed >= static_cast<long long>(per)) {
-                last_ = now;
-                if (raise_irq_) raise_irq_();
-            }
+        const auto elapsed =
+            std::chrono::duration_cast<std::chrono::milliseconds>(now - last_).count();
+        if (elapsed >= static_cast<long long>(per)) {
+            last_ = now;
+            if (raise_irq_) raise_irq_();
         }
     }
 
-    uint32_t cfg() const { return cfg_; }
+    uint32_t read32(uint32_t) override {
+        return cfg_;
+    }
+
+    void write32(uint32_t, uint32_t v) override {
+        cfg_ = v;
+        last_ = clock::now();
+    }
 
 private:
     static uint32_t period_ms(uint32_t cfg) {
@@ -55,11 +53,10 @@ private:
         case 6: return 30000;
         case 7: return 60000;
         }
-        return 500;
+        return 0;
     }
 
-    uint32_t base_;
     uint32_t cfg_{0};
-    time_point last_{};
+    clock::time_point last_{};
     std::function<void()> raise_irq_;
 };
