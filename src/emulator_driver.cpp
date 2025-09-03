@@ -126,7 +126,7 @@ bool Emulator::execute_instruction() {
     uint8_t op, mod, regA, regB, regC;
     int16_t disp;
 
-    uint32_t inst = mem.load32(pc);
+    uint32_t inst = load32(pc);
     uint8_t b0 =  inst        & 0xFF;
     uint8_t b1 = (inst >> 8)  & 0xFF;
     uint8_t b2 = (inst >> 16) & 0xFF;
