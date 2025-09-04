@@ -11,17 +11,25 @@ The project is built in C++ using **Flex** (lexer) and **Bison** (parser) for th
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
-2. [Assembler](#assembler)
-    - [Supported Instructions](#supported-instructions)
-    - [Assembler Workflow](#assembler-workflow)
-3. [Linker](#linker)
-    - [Supported Features](#supported-features)
-    - [Linker Workflow](#linker-workflow)
-4. [Emulator](#emulator)
-    - [Supported Features](#emulator-supported-features)
-    - [Emulator Workflow](#emulator-workflow)
+2. [Assembler](#assembler)  
+   2.1. [Supported Instructions](#supported-instructions)  
+   2.2. [Directives Supported](#directives-supported)  
+   2.3. [Assembler Workflow](#assembler-workflow)
+3. [Linker](#linker)  
+   3.1. [Supported Features](#supported-features)  
+   3.2. [Linker Workflow](#linker-workflow)
+4. [Emulator](#emulator)  
+   4.1. [Quick Start](#quick-start)  
+   4.2. [High-Level Design](#high-level-design)  
+   4.3. [Components](#components)  
+   4.4. [CPU Model](#cpu-model)  
+   4.5. [Memory Map & MMIO](#memory-map--mmio)  
+   4.6. [Instruction Set (Overview)](#instruction-set-overview)  
+   • [Opcodes](#opcodes) • [CALL](#call) • [JUMP](#jump) • [ALU](#alu) • [LOGIC](#logic) • [SHIFT](#shift) • [STORE](#store) • [LOAD](#load)  
+   4.7. [Interrupts](#interrupts)  
+   4.8. [Hex Image Format](#hex-image-format)
 5. [Build Instructions](#build-instructions)
-6. [Required tools](#required-tools)
+6. [Required Tools](#required-tools)
 
 ---
 
@@ -274,7 +282,7 @@ Constructed once in `Emulator`, restored on destruction.
 ### Instruction set (overview)
 The top nibble of byte 0 is the **opcode**; the low nibble is a **modifier** (for grouped instructions). Register fields `A/B/C` and 12-bit signed displacement `D` are in the remaining bytes.
 
-### Opcodes
+#### Opcodes
 | Mnemonic group | Opcode | Description                                        |
 | -------------- | :----: | -------------------------------------------------- |
 | `HALT`         |   0x0  | Stop execution                                     |
@@ -288,13 +296,13 @@ The top nibble of byte 0 is the **opcode**; the low nibble is a **modifier** (fo
 | `STORE`        |   0x8  | Store to memory (see `STORE_MOD`)                  |
 | `LOAD`         |   0x9  | Loads & CSR ops (see `LOAD_MOD`)                   |
 
-### CALL
+#### CALL
 | Modifier                       | Value | Semantics                          |
 | ------------------------------ | :---: | ---------------------------------- |
 | `LINK_TO_REGS_PLUS_IMM`        |  0x0  | `push pc; pc = rA + rB + D`        |
 | `LINK_TO_MEM_AT_REGS_PLUS_IMM` |  0x1  | `push pc; pc = mem32[rA + rB + D]` |
 
-### JUMP
+#### JUMP
 | Modifier           | Value | Semantics                                   |
 | ------------------ | :---: | ------------------------------------------- |
 | `ABS`              |  0x0  | `pc = rA + D`                               |
@@ -306,7 +314,7 @@ The top nibble of byte 0 is the **opcode**; the low nibble is a **modifier** (fo
 | `BR_NE_IND`        |  0xA  | `if (rB != rC) pc = mem32[rA + D]`          |
 | `BR_GT_IND_SIGNED` |  0xB  | `if ((int)rB > (int)rC) pc = mem32[rA + D]` |
 
-### ALU
+#### ALU
 | Modifier | Value | Semantics                  |
 | -------- | :---: | -------------------------- |
 | `ADD`    |  0x0  | `rA = rB + rC` (if `A!=0`) |
@@ -314,7 +322,7 @@ The top nibble of byte 0 is the **opcode**; the low nibble is a **modifier** (fo
 | `MUL`    |  0x2  | `rA = rB * rC` (if `A!=0`) |
 | `DIV`    |  0x3  | `rA = rB / rC` (if `A!=0`) |
 
-### LOGIC
+#### LOGIC
 | Modifier | Value | Semantics                  |
 | -------- | :---: |----------------------------|
 | `NOT`    |  0x0  | `rA = ~rB` (if `A!=0`)     |
@@ -322,20 +330,20 @@ The top nibble of byte 0 is the **opcode**; the low nibble is a **modifier** (fo
 | `OR`     |  0x2  | `rA = rB \| rC` (if`A!=0`) |
 | `XOR`    |  0x3  | `rA = rB ^ rC` (if `A!=0`) |
 
-### SHIFT
+#### SHIFT
 | Modifier | Value | Semantics                             |
 | -------- | :---: | ------------------------------------- |
 | `SHL`    |  0x0  | `rA = rB << rC` (logical) (if `A!=0`) |
 | `SHR`    |  0x1  | `rA = rB >> rC` (logical) (if `A!=0`) |
 
-### STORE
+#### STORE
 | Modifier                          | Value | Semantics                        |
 | --------------------------------- | :---: | -------------------------------- |
 | `TO_ADDR_REGS_PLUS_IMM`           |  0x0  | `mem32[rA + rB + D] = rC`        |
 | `TO_ADDR_AT_MEM_OF_REGS_PLUS_IMM` |  0x2  | `mem32[mem32[rA + rB + D]] = rC` |
 | `PREINC_AND_STORE`                |  0x1  | `rA += D; mem32[rA] = rC`        |
 
-### LOAD
+#### LOAD
 | Modifier                         | Value | Semantics                     |
 | -------------------------------- | :---: |-------------------------------|
 | `CSR_READ`                       |  0x0  | `rA = csr[B]`                 |
@@ -346,6 +354,7 @@ The top nibble of byte 0 is the **opcode**; the low nibble is a **modifier** (fo
 | `CSR_OR_IMMEDIATE`               |  0x5  | `csr[A] = csr[B] \| D`        |
 | `CSR_WRITE_FROM_ADDR`            |  0x6  | `csr[A] = mem32[rB + rC + D]` |
 | `CSR_WRITE_FROM_REG_AND_POSTINC` |  0x7  | `csr[A] = mem32[rB]; rB += D` |
+
 > Note: `r0` is forced to 0 after each instruction; writes to `r0` are ignored via that rule.
 
 ---
