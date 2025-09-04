@@ -165,11 +165,9 @@ A tiny 32-bit CPU emulator with a clean Bus / Device architecture, a memory-mapp
 ### Quick start
 #### Build
 ```bash
-g++ -std=c++17 -O2 -Wall -Wextra \
-  src/emulator_driver.cpp \
-  -Isrc -o emulator
+g++ -o emulator src/emulator_driver.cpp
 ```
-Or use you existing `Makefile`
+Or use your existing `Makefile`
 
 #### Run
 ```bash
@@ -242,12 +240,14 @@ Constructed once in `Emulator`, restored on destruction.
     - `2` = timer, `3` = terminal, `4` = software INT
 - **Fetch/Decode/Execute**:
   - Each step: `bus.tick()` → fetch 4 bytes at `PC` → decode → execute.
-  - For non-HALT instructions, `PC += 4` before execution effects that jump/branch.
+  - For non-HALT instructions, `PC += 4` *before* execution effects that jump/branch.
   - On device IRQs, emulator checks masks and `STATUS` bit 2; if allowed, pushes `PC` and `STATUS`, sets `STATUS.bit2`, and jumps to `HANDLER`.
 
 ---
 
 ### Memory map & MMIO
+> All addresses not claimed by a mapped device are served by RAM.
+
 **Devices**:
 
   | Device         | Base         | Size | Off | Access | Meaning                                    |
