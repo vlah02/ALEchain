@@ -281,7 +281,7 @@ or: OR REGISTER COMMA REGISTER terminate {
     section->add_instruction(0b0110, 0b0010, regs[$4], regs[$4], regs[$2]);
 }
 xor: XOR REGISTER COMMA REGISTER terminate {
-    section->add_instruction(0b0110, 0b0010, regs[$4], regs[$4], regs[$2]);
+    section->add_instruction(0b0110, 0b0011, regs[$4], regs[$4], regs[$2]);
 }
 
 shl: SHIFT_LEFT REGISTER COMMA REGISTER terminate {
