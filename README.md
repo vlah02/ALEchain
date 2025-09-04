@@ -8,6 +8,7 @@
 The project is built in C++ using **Flex** (lexer) and **Bison** (parser) for the Assembler, and includes a simple Makefile-based build system with tests.
 
 ---
+<br>
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
@@ -31,6 +32,7 @@ The project is built in C++ using **Flex** (lexer) and **Bison** (parser) for th
 6. [Required Tools](#required-tools)
 
 ---
+<br>
 
 ## Project Overview
 
@@ -49,6 +51,7 @@ Emulator → Execution on virtual CPU
 - **Emulator**: Loads and executes the program on a virtual CPU, supporting I/O and timers.
 
 ---
+<br>
 
 ## Assembler
 
@@ -132,6 +135,7 @@ The assembler parser (using **Flex** + **Bison**) supports the following instruc
 **Output:** Relocatable `.o` file with text/data sections and symbol table.
 
 ---
+<br>
 
 ## Linker
 
@@ -163,6 +167,7 @@ The assembler parser (using **Flex** + **Bison**) supports the following instruc
     - `-relocatable` → Relocatable object for further linking.
 
 ---
+<br>
 
 ## Emulator
 A tiny 32-bit CPU emulator with a clean Bus / Device architecture, a memory-mapped terminal, and a timer that raises interrupts. It loads a simple hex image, runs until HALT, and prints the final CPU state.
@@ -387,6 +392,7 @@ The loader expects a simple hex dump: each line begins with a hex address follow
 Bytes are written in memory at the given address (little-endian is handled by how your code packs/reads words).
 
 ---
+<br>
 
 ## Build Instructions
 
@@ -401,6 +407,7 @@ make clean
 ```
 
 ---
+<br>
 
 ## Required tools
 - g++ (C++17)  
