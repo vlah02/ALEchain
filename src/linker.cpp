@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     if (output_hex) {
         LinkerSections::merge_sections(placements);
         LinkerSymTab::resolve_symbols();
-        LinkerSymTab::patch_occurrences();
+        LinkerSymTab::patch_relocations();
 
         std::ofstream out(output_file);
         LinkerSections::output_hex(out);

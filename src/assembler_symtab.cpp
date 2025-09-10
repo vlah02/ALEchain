@@ -103,29 +103,30 @@ void SymTab::validate_weaks_or_die() {
 
 void SymTab::out(std::ostream& os) {
     for (auto& row : table) {
-        std::string type = (globals.find(row.first) != globals.end() ? (row.second->line == -1 ? "undefined" : "defined") : "local");
+        std::string binding = (globals.find(row.first) != globals.end()
+                               ? (row.second->line == -1 ? "undefined" : "defined")
+                               : "local");
         os << row.first << " "
-           << type << " ";
+           << binding << " ";
+
         if (weaks.find(row.first) != weaks.end())
             os << "weak ";
         else
             os << "strong ";
+
         if (types.find(row.first) != types.end())
             os << types[row.first];
         else
             os << "NOTYPE";
-        if (type != std::string("undefined")) {
+
+        if (binding != std::string("undefined")) {
             if (row.second->section.empty())
                 os << " ABS " << row.second->line;
             else
                 os << " " << row.second->section << " " << row.second->line;
         }
-        os << " " << row.second->occurences.size();
-        os << std::endl;
 
-        for (auto& occurence : row.second->occurences) {
-            os << occurence.section << "\t" << occurence.line << "\t" << occurence.inPool << std::endl;
-        }
+        os << " 0\n";
     }
 }
 

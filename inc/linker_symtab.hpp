@@ -37,6 +37,11 @@ struct LinkerSymTab {
 
     static void parse_symbols_and_relocations(const std::vector<std::string>& filenames);
     static void resolve_symbols();
+
+    // NEW:
+    static void patch_relocations();
+
+    // (legacy; unused after this change, keep for reference if you want)
     static void patch_occurrences();
 
     static bool check_no_multiple_definitions(bool die_on_error);

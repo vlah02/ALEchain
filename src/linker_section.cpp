@@ -12,6 +12,12 @@
 std::unordered_map<std::string, LinkerSection> LinkerSections::merged_sections;
 std::vector<std::string> LinkerSections::section_order;
 
+static bool is_bin8(const std::string& s) {
+    if (s.size() != 8) return false;
+    for (char c : s) if (c != '0' && c != '1') return false;
+    return true;
+}
+
 static void parse_section_block(
     std::ifstream& file,
     const std::string& section_name,
@@ -20,15 +26,34 @@ static void parse_section_block(
 {
     size_t start_offset = section.data.size();
     std::string line;
-    while (std::getline(file, line)) {
-        if (line.empty() || line[0] == '.') break;
+
+    std::streampos prev_pos = file.tellg();
+
+    while (true) {
+        std::streampos here = file.tellg();
+        if (!std::getline(file, line)) break;
+
+        if (line.empty() || (!line.empty() && line[0] == '.')) {
+            file.clear();
+            file.seekg(here);
+            break;
+        }
+
         std::istringstream iss(line);
         std::string byte_str;
         while (iss >> byte_str) {
-            unsigned char val = std::stoi(byte_str, nullptr, 2);
+            if (!is_bin8(byte_str)) {
+                std::cerr << "[WARN] Non-binary token '" << byte_str
+                          << "' in " << filename << " section ." << section_name << "\n";
+                continue;
+            }
+            unsigned char val = static_cast<unsigned char>(std::stoi(byte_str, nullptr, 2));
             section.data.push_back(val);
         }
+
+        prev_pos = file.tellg();
     }
+
     section.file_offsets[filename] = start_offset;
 }
 
@@ -43,11 +68,20 @@ void LinkerSections::load_sections(const std::vector<std::string>& filenames)
             exit(1);
         }
         std::string line;
+
         while (std::getline(file, line)) {
             if (line == ".sections") break;
         }
-        while (std::getline(file, line)) {
-            if (line == ".symbols" || line.empty()) break;
+
+        while (true) {
+            std::streampos here = file.tellg();
+            if (!std::getline(file, line)) break;
+            if (line.empty()) continue;
+            if (line == ".symbols") {
+                file.clear();
+                file.seekg(here);
+                break;
+            }
             if (line[0] == '.') {
                 std::string section_name = line.substr(1);
                 if (merged_sections.find(section_name) == merged_sections.end()) {

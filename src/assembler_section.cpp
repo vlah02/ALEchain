@@ -4,6 +4,7 @@
 #include <limits>
 
 #include "../inc/assembler_symtab.hpp"
+#include "../inc/assembler_reloc.hpp"
 
 std::unordered_map<std::string, Section*> Section::sections;
 static std::vector<std::string> section_order;
@@ -57,23 +58,31 @@ void Section::dumpPool() {
         for (auto& literal : section->pool) {
             int lineToReplace = literal.line;
 
-            int literalLine = section->data.size();
+            int literalLine = (int)section->data.size();
             int displacement = literalLine - lineToReplace - 4;
             section->data[lineToReplace + 3] = displacement & 0x0FF;
-            section->data[lineToReplace + 2] |= displacement >> 8;
+            section->data[lineToReplace + 2] |= (displacement >> 8) & 0x0F;
 
-            if (!literal.symbol.empty())
-                SymTab::add_occurrence(literal.symbol, section_name, section->data.size(), /*inPool=*/true);
+            if (!literal.symbol.empty()) {
+                SymTab::add_occurrence(literal.symbol, section_name, (int)section->data.size(), /*inPool=*/true);
+            }
 
             if (literal.value != -1) {
                 section->insertInt(literal.value);
-            } else if (!literal.symbol.empty()) {
-                auto symEntryIt = SymTab::table.find(literal.symbol);
+                continue;
+            }
+
+            if (!literal.symbol.empty()) {
+                int patch_off = (int)section->data.size();
+
                 int valueToInsert = 0;
-                if (symEntryIt != SymTab::table.end() && symEntryIt->second->line != -1) {
+                auto symEntryIt = SymTab::table.find(literal.symbol);
+                bool isLocalAndDefined = (symEntryIt != SymTab::table.end() && symEntryIt->second->line != -1);
+                if (isLocalAndDefined) {
                     valueToInsert = symEntryIt->second->line + literal.addend;
                     if (literal.patchInPlace) {
-                        section->data[lineToReplace + 2] = (valueToInsert >> 8) & 0x0F | (section->data[lineToReplace + 2] & 0xF0);
+                        section->data[lineToReplace + 2] =
+                            ((valueToInsert >> 8) & 0x0F) | (section->data[lineToReplace + 2] & 0xF0);
                         section->data[lineToReplace + 3] = valueToInsert & 0xFF;
                     }
                     section->insertInt(valueToInsert);
@@ -81,13 +90,15 @@ void Section::dumpPool() {
                             valueToInsert, literal.symbol.c_str(), section_name.c_str(), section->data.size());
                 } else {
                     if (literal.patchInPlace) {
-                        section->data[lineToReplace + 2] = 0;
-                        section->data[lineToReplace + 3] = 0;
+                        section->data[lineToReplace + 2] &= 0xF0;
+                        section->data[lineToReplace + 3]  = 0;
                     }
                     section->insertInt(0);
                     fprintf(stderr, "[POOL] insertInt(0) for EXTERNAL symbol=%s at section=%s, offset=%zu\n",
                             literal.symbol.c_str(), section_name.c_str(), section->data.size());
                 }
+
+                AsmRelocs::add(section_name, patch_off, "R_ABS32", literal.symbol, literal.addend);
             }
         }
     }

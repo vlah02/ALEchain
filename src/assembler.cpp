@@ -7,6 +7,7 @@
 #include "../inc/parser.hpp"
 #include "../inc/assembler_section.hpp"
 #include "../inc/assembler_symtab.hpp"
+#include "../inc/assembler_reloc.hpp"
 
 int main(int argc, char **argv) {
     std::string inputName;
@@ -63,6 +64,7 @@ int main(int argc, char **argv) {
     Section::out(output);
     output << ".symbols\n";
     SymTab::out(output);
+    AsmRelocs::out(output);
 
     return 0;
 }
