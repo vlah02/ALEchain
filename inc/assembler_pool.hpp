@@ -15,5 +15,6 @@ struct AsmPool {
     static void enqueue_symbol(const std::string& sec, int site, const std::string& sym, int addend, bool patchInPlace);
     static void add_literal(const std::string& section, int site, const std::string& sym);
     static void flush();
+    static void check_weaks();
     static void clear();
 };

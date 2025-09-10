@@ -6,6 +6,7 @@
 #include <vector>
 #include <limits>
 #include <cstdio>
+#include <iostream>
 
 static std::vector<PoolItem>& pool_items() {
     static std::vector<PoolItem> items;
@@ -92,7 +93,24 @@ void AsmPool::flush() {
         }
     }
 
-    SymTab::validate_weaks_or_die();
+    check_weaks();
+}
+
+void AsmPool::check_weaks() {
+    for (const auto& w : SymTab::weaks) {
+        auto it = SymTab::table.find(w);
+        if (it == SymTab::table.end()) {
+            std::cerr << "ERROR: .weak symbol '" << w << "' was declared but never defined nor referenced in this module.\n";
+            exit(1);
+        }
+        auto* def = it->second;
+        bool hasDef = (def->line != -1);
+        bool hasOcc = !def->occurences.empty();
+        if (!hasDef && !hasOcc) {
+            std::cerr << "ERROR: .weak symbol '" << w << "' was declared but never defined nor referenced in this module.\n";
+            exit(1);
+        }
+    }
 }
 
 void AsmPool::clear() {

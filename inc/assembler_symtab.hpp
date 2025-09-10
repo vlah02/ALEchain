@@ -9,7 +9,6 @@ public:
     static void add_definition(const std::string& name, const std::string& section, int line);
     static void add_occurrence(const std::string& name, const std::string& section, int line, bool inPool = true);
     static void resolve_pending_equs();
-    static void validate_weaks_or_die();
     static void out(std::ostream& os);
 
     struct symOccurrence {
