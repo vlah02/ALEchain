@@ -26,30 +26,6 @@ void SymTab::add_occurrence(const std::string& name, const std::string& section,
     table[name]->occurences.push_back({section, line, inPool});
 }
 
-void SymTab::add_type(const std::string& symbol, const std::string& type) {
-    types.insert({symbol, type});
-}
-
-long SymTab::try_resolve_equ(const std::string& name) {
-    auto plus  = name.find('+');
-    auto minus = name.find('-');
-
-    std::string base = name;
-    int addend = 0;
-
-    if (plus != std::string::npos) {
-        addend = std::stoi(name.substr(plus + 1));
-        base = name.substr(0, plus);
-    } else if (minus != std::string::npos) {
-        addend = -std::stoi(name.substr(minus + 1));
-        base = name.substr(0, minus);
-    }
-
-    if (equs.count(base))
-        return equs[base] + addend;
-    return std::numeric_limits<long>::min();
-}
-
 void SymTab::resolve_pending_equs() {
     auto lookup = [&](const std::string& sym, long& out) -> bool {
         if (auto it = equs.find(sym); it != equs.end()) {

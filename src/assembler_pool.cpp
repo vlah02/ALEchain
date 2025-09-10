@@ -20,6 +20,27 @@ void AsmPool::enqueue_symbol(const std::string& sec, int site, const std::string
     pool_items().push_back(PoolItem{sec, site, -1, sym, addend, patchInPlace});
 }
 
+void AsmPool::add_literal(const std::string& sec, int site, const std::string& sym) {
+    std::string base = sym;
+    int addend = 0;
+    if (auto plus = base.find('+'); plus != std::string::npos) {
+        addend = std::stoi(base.substr(plus + 1));
+        base = base.substr(0, plus);
+    } else if (auto minus = base.find('-'); minus != std::string::npos) {
+        addend = -std::stoi(base.substr(minus + 1));
+        base = base.substr(0, minus);
+    }
+
+    if (auto it = SymTab::equs.find(base); it != SymTab::equs.end()) {
+        const long equVal = it->second + addend;
+        AsmPool::enqueue_value(sec, site, static_cast<int>(equVal), true);
+        return;
+    }
+
+    AsmPool::enqueue_symbol(sec, site, base, addend, false);
+}
+
+
 void AsmPool::flush() {
     SymTab::resolve_pending_equs();
 

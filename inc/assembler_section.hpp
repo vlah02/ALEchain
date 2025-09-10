@@ -5,23 +5,22 @@
 
 class Section {
 public:
-    Section(std::string name) { this->name = name; }
+    explicit Section(const std::string& name) { this->name = name; }
 
-    void add_instruction(unsigned char OC = 0, unsigned char MOD = 0, unsigned char RegA = 0,
-                         unsigned char RegB = 0, unsigned char RegC = 0, signed short Disp = 0);
-    void add_literal(const std::string& literal, int addend = 0, bool patchInPlace = false);
-    void add_literal(int literal, bool patchInPlace = false);
-    void add_symbol_or_equ_literal(const std::string& sym);
+    [[nodiscard]] std::string getName() const { return this->name; }
+    std::vector<unsigned char> &getData() { return this->data; }
+    [[nodiscard]] int getSize() const { return static_cast<int>(this->data.size()); }
+    static std::unordered_map<std::string, Section*>& getSections() { return sections; }
 
     static Section* extract(const std::string& name);
 
-    std::string getName() const { return this->name; }
-    int getSize() const { return static_cast<int>(this->data.size()); }
-    static std::unordered_map<std::string, Section*>& getSections() { return sections; }
-    std::vector<unsigned char> &getData() { return this->data; }
-    static void out(std::ostream &out);
+    void add_instruction(unsigned char OC = 0, unsigned char MOD = 0,
+                        unsigned char RegA = 0, unsigned char RegB = 0, unsigned char RegC = 0,
+                        signed short Disp = 0);
     void insertInt(int number);
     void insertByte(int number);
+
+    static void out(std::ostream &out);
 
 private:
     std::string name;
