@@ -5,7 +5,7 @@ linker:
 	g++ -o linker src/linker.cpp src/linker_section.cpp src/linker_symtab.cpp
 
 assembler: parser
-	g++ -o assembler src/assembler.cpp src/assembler_pool.cpp src/assembler_reloc.cpp src/assembler_section.cpp src/assembler_symtab.cpp src/lexer.cpp src/parser.cpp
+	g++ -o assembler src/assembler_driver.cpp src/assembler_pool.cpp src/assembler_relocations.cpp src/assembler_sections.cpp src/assembler_symbols.cpp src/lexer.cpp src/parser.cpp
 
 parser: lexer
 	bison -d -o src/parser.cpp --defines=inc/parser.hpp misc/parser.y

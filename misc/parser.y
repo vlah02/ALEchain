@@ -7,11 +7,10 @@
 #include <limits>
 
 #include "../inc/lexer.hpp"
-#include "../inc/assembler_section.hpp"
-#include "../inc/assembler_symtab.hpp"
-#include "../inc/assembler_pool.hpp"
+#include "../inc/assembler_driver.hpp"
 
-Section *section = Section::extract("txt");
+static Assembler& driver = Assembler::instance();
+Section *section = driver.sections().extract("txt");
 
 std::unordered_map<std::string, unsigned short> regs = {
         {"%r0",      0b0000},
@@ -106,17 +105,17 @@ reglist: REGISTER {
 
 label: SYMBOL COLON terminate {
     std::cerr << "Defining label: " << $1 << " at offset " << section->getSize() << std::endl;
-    SymTab::add_definition($1, section->getName(), section->getSize());
+    driver.symbols().add_definition($1, section->getName(), section->getSize());
 };
 
 global: dotGLOBAL symblist terminate {
     for (auto& symb : symblist)
-        SymTab::globals.insert(symb);
+        driver.symbols().mark_global(symb);
     symblist.clear();
 };
 
 section: dotSECTION SYMBOL terminate {
-    section = Section::extract($2);
+    section = driver.sections().extract($2);
 };
 
 word: dotWORD vallist terminate {
@@ -135,14 +134,15 @@ word: dotWORD vallist terminate {
                 base = base.substr(0, minus);
             }
 
-            auto eqIt = AsmPool::equs.find(base);
-            if (eqIt != AsmPool::equs.end()) {
+            auto& equs = driver.pool().equs;
+            auto eqIt = equs.find(base);
+            if (eqIt != equs.end()) {
                 long equVal = eqIt->second + addend;
                 section->insertInt(static_cast<int>(equVal));
             } else {
-                AsmPool::enqueue_symbol(section->getName(), section->getSize(), base, addend, false);
+                driver.pool().enqueue_symbol(section->getName(), section->getSize(), base, addend, false);
                 section->insertInt(-1);
-                SymTab::add_occurrence(base, section->getName(), section->getSize());
+                driver.symbols().add_occurrence(base, section->getName(), section->getSize());
             }
         }
     }
@@ -166,17 +166,17 @@ ascii: dotASCII STRING terminate {
 };
 
 equ: dotEQU SYMBOL COMMA INTEGER terminate {
-    AsmPool::equs[$2] = std::stoul($4, nullptr, 0);
-    if (SymTab::globals.count($2)) {
-        SymTab::add_definition($2, "", AsmPool::equs[$2]);
+    driver.pool().equs[$2] = std::stoul($4, nullptr, 0);
+    if (driver.symbols().is_global($2)) {
+        driver.symbols().add_definition($2, "", static_cast<int>(driver.pool().equs[$2]));
     }
 } | dotEQU SYMBOL COMMA SYMBOL MINUS SYMBOL terminate {
-    AsmPool::pending_equs.push_back(
-        EquEntry{ std::string($2), std::string($4), std::string($6), EquEntry::Op::SUB }
+    driver.pool().pending_equs.push_back(
+        Pool::EquEntry{ std::string($2), std::string($4), std::string($6), Pool::EquEntry::Op::SUB }
     );
 } | dotEQU SYMBOL COMMA SYMBOL PLUS SYMBOL terminate {
-    AsmPool::pending_equs.push_back(
-        EquEntry{ std::string($2), std::string($4), std::string($6), EquEntry::Op::ADD }
+    driver.pool().pending_equs.push_back(
+        Pool::EquEntry{ std::string($2), std::string($4), std::string($6), Pool::EquEntry::Op::ADD }
     );
 };
 
@@ -192,12 +192,12 @@ type: dotTYPE SYMBOL COMMA SYMBOL terminate {
                   << "', expected one of: FUNC, DATA, NOTYPE\n";
         YYABORT;
     }
-    SymTab::types.insert({std::string($2), t});
+    driver.symbols().set_type($2, t);
 };
 
 weak: dotWEAK symblist terminate {
     for (auto& symb : symblist)
-        SymTab::weaks.insert(symb);
+        driver.symbols().mark_weak(symb);
     symblist.clear();
 };
 
@@ -210,45 +210,45 @@ int: INTERRUPT terminate {
 };
 
 call: CALL SYMBOL terminate {
-    AsmPool::add_literal(section->getName(), section->getSize(), $2);
+    driver.pool().add_literal(section->getName(), section->getSize(), $2);
     section->add_instruction(0b0010, 0b0001, 15);
 } | CALL INTEGER terminate {
-    AsmPool::enqueue_value(section->getName(), section->getSize(), (int)std::stoul($2, nullptr, 0), false);
+    driver.pool().enqueue_value(section->getName(), section->getSize(), (int)std::stoul($2, nullptr, 0), false);
     section->add_instruction(0b0010, 0b0001, 15);
 }
 jmp: JUMP SYMBOL terminate {
-    AsmPool::add_literal(section->getName(), section->getSize(), $2);
+    driver.pool().add_literal(section->getName(), section->getSize(), $2);
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP INTEGER terminate {
-    AsmPool::enqueue_value(section->getName(), section->getSize(), (int)std::stoul($2, nullptr, 0), false);
+    driver.pool().enqueue_value(section->getName(), section->getSize(), (int)std::stoul($2, nullptr, 0), false);
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP SYMBOL PLUS INTEGER terminate {
-    AsmPool::add_literal(section->getName(), section->getSize(), std::string($2) + "+" + std::string($4));
+    driver.pool().add_literal(section->getName(), section->getSize(), std::string($2) + "+" + std::string($4));
     section->add_instruction(0b0011, 0b1000, 15);
 } | JUMP SYMBOL MINUS INTEGER terminate {
-    AsmPool::add_literal(section->getName(), section->getSize(), std::string($2) + "-" + std::string($4));
+    driver.pool().add_literal(section->getName(), section->getSize(), std::string($2) + "-" + std::string($4));
     section->add_instruction(0b0011, 0b1000, 15);
 }
 
 beq: BRANCH_EQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate {
-    AsmPool::add_literal(section->getName(), section->getSize(), $6);
+    driver.pool().add_literal(section->getName(), section->getSize(), $6);
     section->add_instruction(0b0011, 0b1001, 15, regs[$2], regs[$4]);
 } | BRANCH_EQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate {
-    AsmPool::enqueue_value(section->getName(), section->getSize(), (int)std::stoul($6, nullptr, 0), false);
+    driver.pool().enqueue_value(section->getName(), section->getSize(), (int)std::stoul($6, nullptr, 0), false);
     section->add_instruction(0b0011, 0b1001, 15, regs[$2], regs[$4]);
 }
 bne: BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA SYMBOL terminate {
-    AsmPool::add_literal(section->getName(), section->getSize(), $6);
+    driver.pool().add_literal(section->getName(), section->getSize(), $6);
     section->add_instruction(0b0011, 0b1010, 15, regs[$2], regs[$4]);
 } | BRANCH_notEQUAL REGISTER COMMA REGISTER COMMA INTEGER terminate {
-    AsmPool::enqueue_value(section->getName(), section->getSize(), (int)std::stoul($6, nullptr, 0), false);
+    driver.pool().enqueue_value(section->getName(), section->getSize(), (int)std::stoul($6, nullptr, 0), false);
     section->add_instruction(0b0011, 0b1010, 15, regs[$2], regs[$4]);
 }
 bgt: BRANCH_GREATER REGISTER COMMA REGISTER COMMA SYMBOL terminate {
-    AsmPool::add_literal(section->getName(), section->getSize(), $6);
+    driver.pool().add_literal(section->getName(), section->getSize(), $6);
     section->add_instruction(0b0011, 0b1011, 15, regs[$2], regs[$4]);
 } | BRANCH_GREATER REGISTER COMMA REGISTER COMMA INTEGER terminate {
-    AsmPool::enqueue_value(section->getName(), section->getSize(), (int)std::stoul($6, nullptr, 0), false);
+    driver.pool().enqueue_value(section->getName(), section->getSize(), (int)std::stoul($6, nullptr, 0), false);
     section->add_instruction(0b0011, 0b1011, 15, regs[$2], regs[$4]);
 }
 
@@ -307,10 +307,10 @@ pop: POP REGISTER terminate {
 }
 
 st: STORE REGISTER COMMA INTEGER terminate {
-    AsmPool::enqueue_value(section->getName(), section->getSize(), (int)std::stoul($4, nullptr, 0), false);
+    driver.pool().enqueue_value(section->getName(), section->getSize(), (int)std::stoul($4, nullptr, 0), false);
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[$2]);
 } | STORE REGISTER COMMA SYMBOL terminate {
-    AsmPool::add_literal(section->getName(), section->getSize(), $4);
+    driver.pool().add_literal(section->getName(), section->getSize(), $4);
     section->add_instruction(0b1000, 0b0010, 15, 0, regs[$2]);
 } | STORE REGISTER COMMA REGISTER terminate {
     section->add_instruction(0b1001, 0b0001, regs[$4], regs[$2]);
@@ -319,23 +319,23 @@ st: STORE REGISTER COMMA INTEGER terminate {
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS INTEGER RBRACKET terminate {
     section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2], std::stoul($7, nullptr, 0));
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS SYMBOL RBRACKET terminate {
-    AsmPool::add_literal(section->getName(), section->getSize(), $7);
+    driver.pool().add_literal(section->getName(), section->getSize(), $7);
     section->add_instruction(0b1000, 0b0000, regs[$5], 0, regs[$2]);
 } | STORE REGISTER COMMA LBRACKET REGISTER PLUS REGISTER RBRACKET terminate {
     section->add_instruction(0b1000, 0b0000, regs[$5], regs[$7], regs[$2]);
 }
 
 ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
-    AsmPool::enqueue_value(section->getName(), section->getSize(), (int)std::stoul($3, nullptr, 0), false);
+    driver.pool().enqueue_value(section->getName(), section->getSize(), (int)std::stoul($3, nullptr, 0), false);
     section->add_instruction(0b1001, 0b0010, regs[$5], 15);
 } | LOAD DOLLAR SYMBOL COMMA REGISTER terminate {
-    AsmPool::add_literal(section->getName(), section->getSize(), $3);
+    driver.pool().add_literal(section->getName(), section->getSize(), $3);
     section->add_instruction(0b1001, 0b0010, regs[$5], 15);
 } | LOAD INTEGER COMMA REGISTER terminate {
     bool alt = (std::string($4) == "%r1");
     unsigned char scratch = alt ? 2 : 1;
     section->add_instruction(0b1000, 0b0001, 14, 0, scratch, -1);
-    AsmPool::enqueue_value(section->getName(), section->getSize(), (int)std::stoul($2, nullptr, 0), false);
+    driver.pool().enqueue_value(section->getName(), section->getSize(), (int)std::stoul($2, nullptr, 0), false);
     section->add_instruction(0b1001, 0b0010, scratch, 15);
     section->add_instruction(0b1001, 0b0010, regs[$4], scratch);
     section->add_instruction(0b1001, 0b0011, scratch, 14, 0, 1);
@@ -343,7 +343,7 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
     bool alt = (std::string($4) == "%r1");
     unsigned char scratch = alt ? 2 : 1;
     section->add_instruction(0b1000, 0b0001, 14, 0, scratch, -1);
-    AsmPool::add_literal(section->getName(), section->getSize(), $2);
+    driver.pool().add_literal(section->getName(), section->getSize(), $2);
     section->add_instruction(0b1001, 0b0010, scratch, 15);
     section->add_instruction(0b1001, 0b0010, regs[$4], scratch);
     section->add_instruction(0b1001, 0b0011, scratch, 14, 0, 1);
@@ -354,7 +354,7 @@ ld: LOAD DOLLAR INTEGER COMMA REGISTER terminate {
 } | LOAD LBRACKET REGISTER PLUS INTEGER RBRACKET COMMA REGISTER terminate {
     section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3], 0, std::stoul($5, nullptr, 0));
 } | LOAD LBRACKET REGISTER PLUS SYMBOL RBRACKET COMMA REGISTER terminate {
-    SymTab::add_occurrence($5, section->getName(), section->getSize(), false);
+    driver.symbols().add_occurrence($5, section->getName(), section->getSize(), false);
     section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3]);
 } | LOAD LBRACKET REGISTER PLUS REGISTER RBRACKET COMMA REGISTER terminate {
     section->add_instruction(0b1001, 0b0010, regs[$8], regs[$3], regs[$5]);
