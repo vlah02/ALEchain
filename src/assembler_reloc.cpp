@@ -1,6 +1,6 @@
 #include "../inc/assembler_reloc.hpp"
 
-std::vector<AsmReloc> AsmRelocs::items;
+std::vector<AsmRelocs::AsmReloc> AsmRelocs::items;
 
 void AsmRelocs::add(std::string sec, int off, std::string type, std::string sym, int addend) {
     items.push_back(AsmReloc{std::move(sec), off, std::move(type), std::move(sym), addend});
