@@ -26,42 +26,11 @@ void SymTab::add_occurrence(const std::string& name, const std::string& section,
     table[name]->occurences.push_back({section, line, inPool});
 }
 
-void SymTab::resolve_pending_equs() {
-    auto lookup = [&](const std::string& sym, long& out) -> bool {
-        if (auto it = equs.find(sym); it != equs.end()) {
-            out = it->second;
-            return true;
-        }
-        if (auto it = table.find(sym); it != table.end() && it->second->line != -1) {
-            out = static_cast<long>(it->second->line);
-            return true;
-        }
-        return false;
-    };
 
-    for (auto& e : pending_equs) {
-        long L = 0, R = 0;
-        bool okL = lookup(e.lhs, L);
-        bool okR = lookup(e.rhs, R);
-
-        long val = 0;
-        if (!okL || !okR) {
-            std::cerr << "ERROR: undefined symbol in deferred .equ: "
-                      << (!okL ? e.lhs : "") << ((!okL && !okR) ? " and " : "")
-                      << (!okR ? e.rhs : "") << "\n";
-        } else {
-            val = (e.op == SymTab::EquEntry::Op::ADD) ? (L + R) : (L - R);
-        }
-
-        equs[e.dst] = val;
-        add_definition(e.dst, "", static_cast<int>(val));
-    }
-
-    pending_equs.clear();
-}
 
 
 void SymTab::out(std::ostream& os) {
+    os << ".symbols\n";
     for (auto& row : table) {
         std::string binding = (globals.find(row.first) != globals.end()
                                ? (row.second->line == -1 ? "undefined" : "defined")

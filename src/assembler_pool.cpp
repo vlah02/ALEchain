@@ -43,7 +43,7 @@ void AsmPool::add_literal(const std::string& sec, int site, const std::string& s
 
 
 void AsmPool::flush() {
-    SymTab::resolve_pending_equs();
+    resolve_equs();
 
     auto& items = pool_items();
     for (auto& it : items) {
@@ -94,6 +94,40 @@ void AsmPool::flush() {
     }
 
     check_weaks();
+}
+
+void AsmPool::resolve_equs() {
+    auto lookup = [&](const std::string& sym, long& out) -> bool {
+        if (auto it = SymTab::equs.find(sym); it != SymTab::equs.end()) {
+            out = it->second;
+            return true;
+        }
+        if (auto it = SymTab::table.find(sym); it != SymTab::table.end() && it->second->line != -1) {
+            out = static_cast<long>(it->second->line);
+            return true;
+        }
+        return false;
+    };
+
+    for (auto& e : SymTab::pending_equs) {
+        long L = 0, R = 0;
+        bool okL = lookup(e.lhs, L);
+        bool okR = lookup(e.rhs, R);
+
+        long val = 0;
+        if (!okL || !okR) {
+            std::cerr << "ERROR: undefined symbol in deferred .equ: "
+                      << (!okL ? e.lhs : "") << ((!okL && !okR) ? " and " : "")
+                      << (!okR ? e.rhs : "") << "\n";
+        } else {
+            val = (e.op == SymTab::EquEntry::Op::ADD) ? (L + R) : (L - R);
+        }
+
+        SymTab::equs[e.dst] = val;
+        SymTab::add_definition(e.dst, "", static_cast<int>(val));
+    }
+
+    SymTab::pending_equs.clear();
 }
 
 void AsmPool::check_weaks() {

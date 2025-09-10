@@ -51,6 +51,7 @@ void Section::insertByte(int number) {
 }
 
 void Section::out(std::ostream& out) {
+    out << ".sections\n";
     for (const auto& section_name : section_order) {
         Section& section = *sections[section_name];
         out << "." << section.getName() << "\n";

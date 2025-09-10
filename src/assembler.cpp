@@ -61,9 +61,7 @@ int main(int argc, char **argv) {
         return -3;
     }
 
-    output << ".sections\n";
     Section::out(output);
-    output << ".symbols\n";
     SymTab::out(output);
     AsmRelocs::out(output);
 
