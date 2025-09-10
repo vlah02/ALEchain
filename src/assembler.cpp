@@ -8,6 +8,7 @@
 #include "../inc/assembler_section.hpp"
 #include "../inc/assembler_symtab.hpp"
 #include "../inc/assembler_reloc.hpp"
+#include "../inc/assembler_pool.hpp"
 
 int main(int argc, char **argv) {
     std::string inputName;
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    Section::dumpPool();
+    AsmPool::flush();
 
     std::ofstream output(outputName);
     if (!output) {

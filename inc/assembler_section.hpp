@@ -19,25 +19,13 @@ public:
     int getSize() const { return static_cast<int>(this->data.size()); }
     static std::unordered_map<std::string, Section*>& getSections() { return sections; }
     std::vector<unsigned char> &getData() { return this->data; }
-    static void dumpPool();
     static void out(std::ostream &out);
     void insertInt(int number);
     void insertByte(int number);
 
 private:
-    struct literal {
-        unsigned long line;
-        long value;
-        std::string symbol;
-        int addend;
-        bool patchInPlace;
-        literal(unsigned long line, long value, const std::string& symbol, int addend = 0, bool patch = false)
-            : line(line), value(value), symbol(symbol), addend(addend), patchInPlace(patch) {}
-    };
-
     std::string name;
-    std::vector<unsigned char> data; 
-    std::vector<literal> pool;       
+    std::vector<unsigned char> data;
 
     static std::unordered_map<std::string, Section*> sections;
 };
