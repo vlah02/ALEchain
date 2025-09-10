@@ -9,8 +9,6 @@ std::unordered_map<std::string, SymTab::symDefinition*> SymTab::table;
 std::unordered_set<std::string> SymTab::globals;
 std::unordered_set<std::string> SymTab::weaks;
 std::unordered_map<std::string, std::string> SymTab::types;
-std::unordered_map<std::string, long> SymTab::equs;
-std::vector<SymTab::EquEntry> SymTab::pending_equs;
 
 void SymTab::add_definition(const std::string& name, const std::string& section, int line) {
     std::cerr << "[SYMTAB] Defining symbol " << name << " at section " << section << " offset " << line << std::endl;

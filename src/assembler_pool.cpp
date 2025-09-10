@@ -8,6 +8,9 @@
 #include <cstdio>
 #include <iostream>
 
+std::unordered_map<std::string, long> AsmPool::equs;
+std::vector<EquEntry> AsmPool::pending_equs;
+
 static std::vector<PoolItem>& pool_items() {
     static std::vector<PoolItem> items;
     return items;
@@ -32,7 +35,7 @@ void AsmPool::add_literal(const std::string& sec, int site, const std::string& s
         base = base.substr(0, minus);
     }
 
-    if (auto it = SymTab::equs.find(base); it != SymTab::equs.end()) {
+    if (auto it = AsmPool::equs.find(base); it != AsmPool::equs.end()) {
         const long equVal = it->second + addend;
         AsmPool::enqueue_value(sec, site, static_cast<int>(equVal), true);
         return;
@@ -98,7 +101,7 @@ void AsmPool::flush() {
 
 void AsmPool::resolve_equs() {
     auto lookup = [&](const std::string& sym, long& out) -> bool {
-        if (auto it = SymTab::equs.find(sym); it != SymTab::equs.end()) {
+        if (auto it = AsmPool::equs.find(sym); it != AsmPool::equs.end()) {
             out = it->second;
             return true;
         }
@@ -109,7 +112,7 @@ void AsmPool::resolve_equs() {
         return false;
     };
 
-    for (auto& e : SymTab::pending_equs) {
+    for (auto& e : AsmPool::pending_equs) {
         long L = 0, R = 0;
         bool okL = lookup(e.lhs, L);
         bool okR = lookup(e.rhs, R);
@@ -120,14 +123,14 @@ void AsmPool::resolve_equs() {
                       << (!okL ? e.lhs : "") << ((!okL && !okR) ? " and " : "")
                       << (!okR ? e.rhs : "") << "\n";
         } else {
-            val = (e.op == SymTab::EquEntry::Op::ADD) ? (L + R) : (L - R);
+            val = (e.op == EquEntry::Op::ADD) ? (L + R) : (L - R);
         }
 
-        SymTab::equs[e.dst] = val;
+        AsmPool::equs[e.dst] = val;
         SymTab::add_definition(e.dst, "", static_cast<int>(val));
     }
 
-    SymTab::pending_equs.clear();
+    AsmPool::pending_equs.clear();
 }
 
 void AsmPool::check_weaks() {

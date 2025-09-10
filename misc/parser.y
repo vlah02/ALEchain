@@ -135,8 +135,8 @@ word: dotWORD vallist terminate {
                 base = base.substr(0, minus);
             }
 
-            auto eqIt = SymTab::equs.find(base);
-            if (eqIt != SymTab::equs.end()) {
+            auto eqIt = AsmPool::equs.find(base);
+            if (eqIt != AsmPool::equs.end()) {
                 long equVal = eqIt->second + addend;
                 section->insertInt(static_cast<int>(equVal));
             } else {
@@ -166,17 +166,17 @@ ascii: dotASCII STRING terminate {
 };
 
 equ: dotEQU SYMBOL COMMA INTEGER terminate {
-    SymTab::equs[$2] = std::stoul($4, nullptr, 0);
+    AsmPool::equs[$2] = std::stoul($4, nullptr, 0);
     if (SymTab::globals.count($2)) {
-        SymTab::add_definition($2, "", SymTab::equs[$2]);
+        SymTab::add_definition($2, "", AsmPool::equs[$2]);
     }
 } | dotEQU SYMBOL COMMA SYMBOL MINUS SYMBOL terminate {
-    SymTab::pending_equs.push_back(
-        SymTab::EquEntry{ std::string($2), std::string($4), std::string($6), SymTab::EquEntry::Op::SUB }
+    AsmPool::pending_equs.push_back(
+        EquEntry{ std::string($2), std::string($4), std::string($6), EquEntry::Op::SUB }
     );
 } | dotEQU SYMBOL COMMA SYMBOL PLUS SYMBOL terminate {
-    SymTab::pending_equs.push_back(
-        SymTab::EquEntry{ std::string($2), std::string($4), std::string($6), SymTab::EquEntry::Op::ADD }
+    AsmPool::pending_equs.push_back(
+        EquEntry{ std::string($2), std::string($4), std::string($6), EquEntry::Op::ADD }
     );
 };
 

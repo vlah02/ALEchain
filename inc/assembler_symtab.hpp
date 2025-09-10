@@ -20,18 +20,9 @@ public:
         int line = -1;
         std::vector<symOccurrence> occurences;
     };
-    struct EquEntry {
-        enum class Op { ADD, SUB };
-        std::string dst;
-        std::string lhs;
-        std::string rhs;
-        Op op;
-    };
 
     static std::unordered_map<std::string, symDefinition*> table;
     static std::unordered_set<std::string> globals;
     static std::unordered_set<std::string> weaks;
     static std::unordered_map<std::string, std::string> types;
-    static std::unordered_map<std::string, long> equs;
-    static std::vector<EquEntry> pending_equs;
 };
