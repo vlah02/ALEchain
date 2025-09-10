@@ -3,15 +3,6 @@
 #include <vector>
 #include <unordered_map>
 
-struct PoolItem {
-    std::string section;
-    int         site;
-    long        value;
-    std::string symbol;
-    int         addend;
-    bool        patchInPlace;
-};
-
 struct EquEntry {
     enum class Op { ADD, SUB };
     std::string dst;
@@ -20,7 +11,19 @@ struct EquEntry {
     Op op;
 };
 
-struct AsmPool {
+class AsmPool {
+    struct PoolItem {
+        std::string section;
+        int         site;
+        long        value;
+        std::string symbol;
+        int         addend;
+        bool        patchInPlace;
+    };
+
+public:
+    static std::vector<PoolItem> items;
+
     static std::vector<EquEntry> pending_equs;
     static std::unordered_map<std::string, long> equs;
 

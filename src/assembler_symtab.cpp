@@ -24,9 +24,6 @@ void SymTab::add_occurrence(const std::string& name, const std::string& section,
     table[name]->occurences.push_back({section, line, inPool});
 }
 
-
-
-
 void SymTab::out(std::ostream& os) {
     os << ".symbols\n";
     for (auto& row : table) {
@@ -55,6 +52,7 @@ void SymTab::out(std::ostream& os) {
 
         os << " 0\n";
     }
+    os << "\n";
 }
 
 
