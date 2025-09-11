@@ -12,24 +12,32 @@ The project is built in C++ using **Flex** (lexer) and **Bison** (parser) for th
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
-2. [Assembler](#assembler)  
-   2.1. [Supported Instructions](#supported-instructions)  
-   2.2. [Directives Supported](#directives-supported)  
-   2.3. [Assembler Workflow](#assembler-workflow)
-3. [Linker](#linker)  
-   3.1. [Supported Features](#supported-features)  
-   3.2. [Linker Workflow](#linker-workflow)
-4. [Emulator](#emulator)  
-   4.1. [Quick Start](#quick-start)  
-   4.2. [High-Level Design](#high-level-design)  
-   4.3. [Components](#components)  
-   4.4. [CPU Model](#cpu-model)  
-   4.5. [Memory Map & MMIO](#memory-map--mmio)  
-   4.6. [Instruction Set (Overview)](#instruction-set-overview)  
-   4.7. [Interrupts](#interrupts)  
-   4.8. [Hex Image Format](#hex-image-format)
+2. [Assembler](#assembler)
+    - [Build & Run](#build--run)
+    - [Architecture Overview](#architecture-overview)
+    - [Expressions & Literals](#expressions--literals)
+    - [Supported Instructions](#supported-instructions)
+    - [Directives](#directives)
+    - [Relocations](#relocations)
+    - [Output File Format (textual)](#output-file-format-textual)
+    - [Example](#example)
+    - [Current Limitations / Notes](#current-limitations--notes)
+    - [Extending](#extending)
+3. [Linker](#linker)
+    - [Supported Features](#supported-features)
+    - [Linker Workflow](#linker-workflow)
+4. [Emulator](#emulator)
+    - [Quick Start](#quick-start)
+    - [High-Level Design](#high-level-design)
+    - [Components](#components)
+    - [CPU Model](#cpu-model)
+    - [Memory Map & MMIO](#memory-map--mmio)
+    - [Instruction Set (Overview)](#instruction-set-overview)
+    - [Interrupts](#interrupts)
+    - [Hex Image Format](#hex-image-format)
 5. [Build Instructions](#build-instructions)
 6. [Required Tools](#required-tools)
+
 
 ---
 <br>
@@ -55,84 +63,207 @@ Emulator → Execution on virtual CPU
 
 ## Assembler
 
-### Supported Instructions
-The assembler parser (using **Flex** + **Bison**) supports the following instructions:
+A small, relocatable assembler built with **Flex** + **Bison**.  
+It parses a custom ISA, builds sections, symbols, and relocations, and writes a simple text `.o` format with three blocks:
 
+- `.sections` — raw bytes of each section
+- `.symbols` — symbol table with bindings, types, and values
+- `.relocations` — relocation records (currently `R_ABS32`)
 
-### Supported Instructions
+The assembler is organized around a single `Assembler` driver that owns the four core subsystems:
 
-| Instruction | Supported Format            | Example                  | Description                                     |
-|--|-----------------------------|---------------------------|------------------------------------------------|
-| `halt` | `halt`                      | `halt`                    | Stop program execution                          |
-| `int` | `int`                       | `int`                     | Software interrupt                              |
-| `iret` | `iret`                      | `iret`                    | Return from interrupt                           |
-| `call` | `call SYMBOL`               | `call func`               | Function call                                   |
-|  | `call INTEGER`              | `call 0x4000`             | Function call with immediate address            |
-| `ret` | `ret`                       | `ret`                     | Return from function                            |
-| `jmp` | `jmp SYMBOL`                | `jmp label`               | Unconditional jump                              |
-|  | `jmp INTEGER`               | `jmp 0x1000`              | Jump to immediate address                       |
-|  | `jmp SYMBOL ± INTEGER`      | `jmp label+4`             | Jump with displacement                          |
-| `beq` | `beq rX, rY, SYMBOL`        | `beq r1, r2, label`        | Branch if equal                                 |
-|  | `beq rX, rY, INTEGER`       | `beq r1, r2, 0x2000`       | Branch if equal to immediate address            |
-| `bne` | `bne rX, rY, SYMBOL`        | `bne r1, r2, label`        | Branch if not equal                             |
-|  | `bne rX, rY, INTEGER`       | `bne r1, r2, 0x2000`       | Branch if not equal to immediate address        |
-| `bgt` | `bgt rX, rY, SYMBOL`        | `bgt r1, r2, label`        | Branch if greater                               |
-|  | `bgt rX, rY, INTEGER`       | `bgt r1, r2, 0x2000`       | Branch if greater to immediate address          |
-| `push` | `push rX`                   | `push r1`                  | Push single register                            |
-|  | `push {rX, rY}`             | `push {r1, r2}`            | Push multiple registers                         |
-| `pop` | `pop rX`                    | `pop r1`                   | Pop register from stack                         |
-| `xchg` | `xchg rX, rY`               | `xchg r1, r2`              | Exchange registers                              |
-| `add` | `add rX, rY`                | `add r1, r2`               | Add two registers                               |
-| `sub` | `sub rX, rY`                | `sub r1, r2`               | Subtract registers                              |
-| `mul` | `mul rX, rY`                | `mul r1, r2`               | Multiply registers                              |
-| `div` | `div rX, rY`                | `div r1, r2`               | Divide registers                                |
-| `not` | `not rX`                    | `not r1`                   | Bitwise NOT                                     |
-| `and` | `and rX, rY`                | `and r1, r2`               | Bitwise AND                                     |
-| `or` | `or rX, rY`                 | `or r1, r2`                | Bitwise OR                                      |
-| `xor` | `xor rX, rY`                | `xor r1, r2`               | Bitwise XOR                                     |
-| `shl` | `shl rX, rY`                | `shl r1, r2`               | Shift left                                      |
-| `shr` | `shr rX, rY`                | `shr r1, r2`               | Shift right                                     |
-| `ld` | `ld $SYMBOL, rX`            | `ld $0x1000, r1`           | Load from absolute address                      |
-|  | `ld SYMBOL, rX`             | `ld var, r1`               | Load from symbol address                        |
-|  | `ld [rX], rY`               | `ld [r1], r2`              | Load from address in register                   |
-| `st` | `st rX, SYMBOL`             | `st r1, var`               | Store register to symbol                        |
-|  | `st rX, [rY]`               | `st r1, [r2]`              | Store register to address in register           |
-| `csrrd` | `csrrd %status, rX`         | `csrrd %status, r1`        | Read control/status register into register      |
-| `csrwr` | `csrwr rX, %cause`          | `csrwr r1, %cause`         | Write register value into control/status reg    |
+- `Sections`  — owns `Section` objects and emission order
+- `Symbols`   — symbol table (defs/occurrences, globals, weaks, types)
+- `Relocations` — relocation list
+- `Pool`      — literal/symbol pool, `.equ` handling, and patching during `flush()`
 
-### Directives Supported
-
-| Directive     | Format / Usage                     | Example               | Description                                          |
-|----------------|------------------------------------|-----------------------|------------------------------------------------------|
-| `.global`      | `.global SYMBOL[, SYMBOL...]`      | `.global main`        | Marks at least 1 symbol as global for linker         |
-| `.extern`      | `.extern SYMBOL[, SYMBOL...]`      | `.extern ext_func`    | Marks at least 1 symbol as defined in another module |
-| `.section`     | `.section NAME`                    | `.section text`       | Starts a new section (`.text`, `.data`, etc.)        |
-| `.word`        | `.word VALUE[, VALUE...]`          | `.word 10, 20, 30`    | Stores one or more 32-bit words                      |
-| `.skip`        | `.skip N`                          | `.skip 16`            | Reserves N bytes initialized to 0                    |
-| `.ascii`       | `.ascii "string"`                  | `.ascii "Hello"`      | Stores ASCII string without null terminator          |
-| `.equ`         | `.equ SYMBOL, VALUE`               | `.equ SIZE, 256`      | Defines constant symbol with value                   |
-| `.end`         | `.end`                             | `.end`                | Marks end of source file                             |
-| `.type`        | `.type SYMBOL, FUNC\|DATA\|NOTYPE` | `.type main, FUNC`    | Assigns symbol type for linker                       |
-| `.weak`        | `.weak SYMBOL1, SYMBOL2`           | `.weak optional_func` | Marks symbol as weakly defined                       |
+`parser.y` references these through `Assembler::instance()`.
 
 ---
 
-### Assembler Workflow
+### Build & Run
 
-1. **Lexical Analysis** (`lexer.l`):
-    - Converts source code into tokens (instructions, registers, literals, symbols).
-2. **Parsing** (`parser.y`):
-    - Validates instruction syntax, directives, labels, symbols.
-    - Builds internal representation of sections & symbol tables.
-3. **Object File Generation**:
-    - Produces `.o` file with:
-        - Sections
-        - Symbol table
-        - Relocation info (for linker)
-4. **Literals & Patching**:
-    - Forward references handled with **literal pools** & patched after parsing.
+    # Build (uses flex+bison)
+    make
 
-**Output:** Relocatable `.o` file with text/data sections and symbol table.
+    # Assemble a single file
+    ./assembler input.s
+
+    # or with explicit output:
+    ./assembler -o out.o input.s
+
+The output file is a human-readable object file with `.sections`, `.symbols`, and `.relocations` blocks.
+
+---
+
+### Architecture Overview
+
+1. **Lexing** (`lexer.l`)
+    - Tokenizes mnemonics, registers (`%r0..%r15`, `%sp`, `%pc`), CSRs (`%status`, `%handler`, `%cause`),
+      integers (dec/hex/bin/oct), strings, and symbols.
+
+2. **Parsing** (`parser.y`)
+    - Validates instruction/directive forms and emits bytes into the current `Section`.
+    - For immediates and symbol references:
+        - Plain integers are emitted directly.
+        - `SYMBOL[±INTEGER]` are sent to the **Pool**.
+
+3. **Pooling & Patching** (`Pool`)
+    - `Pool::add_literal` parses `SYMBOL ± imm` and decides:
+        - If the base is an `.equ`, enqueue an **immediate** value (optionally patching the instruction in place).
+        - Otherwise enqueue a **symbol** (will add a relocation).
+    - `Pool::flush(Sections, Symbols, Relocations)`:
+        - Resolves pending `.equ` expressions (`A ± B`).
+        - For each pooled item:
+            - Emits the 32-bit word into the owning section.
+            - Patches the referring instruction’s displacement field (pool slot is PC-relative).
+            - If the item is a symbol, adds a relocation (`R_ABS32`) at the pool word offset.
+
+4. **Object Emission**
+    - `Sections::out(std::ostream&)` prints all section bytes.
+    - `Symbols::out(std::ostream&)` prints symbol table rows (binding, weak/strong, type, value/section).
+    - `Relocations::out(std::ostream&)` prints relocation records.
+
+---
+
+### Expressions & Literals
+
+- **Integers**: decimal (`123`), hex (`0x7B`), octal (`0o173`), binary (`0b1111011`), negative numbers (`-1`).
+- **Symbols**: `name`, and additive expressions `name+N` / `name-N` where `N` is an integer.
+- **.equ**:
+    - Immediate: `.equ SIZE, 256`
+    - Deferred: `.equ DIFF, end - start` or `.equ SUM, A + B`
+    - Deferred `.equ` are resolved at `Pool::flush()` time. If a referenced symbol is undefined at flush, an error is reported.
+
+---
+
+### Supported Instructions
+
+All mnemonics are lowercase in the source. Registers are `%r0..%r15`, plus aliases `%sp` (r14) and `%pc` (r15).  
+CSRs supported: `%status`, `%handler`, `%cause`.
+
+> Notes:
+> - Some shift/extended `add` forms are tokenized but not yet emitted (placeholders in grammar).
+> - Branch/jump targets accept both absolute immediates and `SYMBOL±IMM`. The pool handles relocation and patching.
+
+| Instruction | Form(s)                               | Example                          | Description                                  |
+|-------------|----------------------------------------|-----------------------------------|----------------------------------------------|
+| `halt`      | `halt`                                 | `halt`                            | Stop program                                 |
+| `int`       | `int`                                  | `int`                             | Software interrupt                           |
+| `iret`      | `iret`                                 | `iret`                            | Return from interrupt                        |
+| `call`      | `call SYMBOL` \| `call INTEGER`        | `call func` \| `call 0x4000`      | Call                                         |
+| `ret`       | `ret`                                  | `ret`                             | Return                                       |
+| `jmp`       | `jmp SYMBOL` \| `jmp INTEGER` \| `jmp SYMBOL ± INTEGER` | `jmp label+4`                  | Unconditional jump                           |
+| `beq`       | `beq rX, rY, SYMBOL/INTEGER`           | `beq %r1, %r2, target`            | Branch if equal                              |
+| `bne`       | `bne rX, rY, SYMBOL/INTEGER`           | `bne %r1, %r2, 0x2000`            | Branch if not equal                          |
+| `bgt`       | `bgt rX, rY, SYMBOL/INTEGER`           | `bgt %r1, %r2, label`             | Branch if greater                            |
+| `push`      | `push rX` \| `push {rX, rY, ...}`      | `push %r1` \| `push { %r1, %r2 }` | Push register(s)                             |
+| `pop`       | `pop rX`                               | `pop %r1`                         | Pop register                                 |
+| `xchg`      | `xchg rX, rY`                          | `xchg %r1, %r2`                   | Exchange registers                           |
+| `add`       | `add rX, rY`                           | `add %r1, %r2`                    | Add registers                                |
+| `sub`       | `sub rX, rY`                           | `sub %r1, %r2`                    | Subtract registers                           |
+| `mul`       | `mul rX, rY`                           | `mul %r1, %r2`                    | Multiply registers                           |
+| `div`       | `div rX, rY`                           | `div %r1, %r2`                    | Divide registers                             |
+| `not`       | `not rX`                               | `not %r1`                         | Bitwise NOT                                  |
+| `and`       | `and rX, rY`                           | `and %r1, %r2`                    | Bitwise AND                                  |
+| `or`        | `or rX, rY`                            | `or %r1, %r2`                     | Bitwise OR                                   |
+| `xor`       | `xor rX, rY`                           | `xor %r1, %r2`                    | Bitwise XOR                                  |
+| `shl`       | `shl rX, rY`                           | `shl %r1, %r2`                    | Shift left                                   |
+| `shr`       | `shr rX, rY`                           | `shr %r1, %r2`                    | Shift right                                  |
+| `ld`        | `ld $INTEGER, rX`                      | `ld $0x1000, %r1`                 | Load absolute (immediate address)            |
+|             | `ld $SYMBOL, rX`                       | `ld $var, %r1`                    | Load absolute (symbol, reloc if needed)      |
+|             | `ld INTEGER, rX`                       | `ld 4, %r1`                       | Load via stack scratch sequence (emits pool) |
+|             | `ld SYMBOL, rX`                        | `ld var, %r1`                     | Load via stack scratch + pool/reloc          |
+|             | `ld [rY], rX`                          | `ld [%r2], %r1`                   | Load from register address                   |
+|             | `ld [rY + INTEGER], rX`                | `ld [%r2 + 8], %r1`               | Load with displacement                       |
+|             | `ld [rY + SYMBOL], rX`                 | `ld [%r2 + var], %r1`             | Load with symbolic displacement (occurrence) |
+|             | `ld [rY + rZ], rX`                     | `ld [%r2 + %r3], %r1`             | Load indexed                                 |
+| `st`        | `st rX, INTEGER`                       | `st %r1, 0x2000`                  | Store to absolute address (immediate)        |
+|             | `st rX, SYMBOL`                        | `st %r1, var`                     | Store to absolute address (symbol/reloc)     |
+|             | `st rX, rY`                            | `st %r1, %r2`                      | Store to address in register                 |
+|             | `st rX, [rY]`                          | `st %r1, [%r2]`                   | Store via [base]                             |
+|             | `st rX, [rY + INTEGER]`                | `st %r1, [%r2 + 4]`               | Store via [base + disp]                      |
+|             | `st rX, [rY + SYMBOL]`                 | `st %r1, [%r2 + var]`             | Store via [base + symbol] (pool/reloc)       |
+|             | `st rX, [rY + rZ]`                      | `st %r1, [%r2 + %r3]`             | Store via [base + index]                     |
+| `csrrd`     | `csrrd %status|%handler|%cause, rX`    | `csrrd %status, %r1`              | CSR read                                     |
+| `csrwr`     | `csrwr rX, %status|%handler|%cause`    | `csrwr %r1, %cause`               | CSR write                                    |
+
+---
+
+### Directives
+
+| Directive  | Format / Usage                                | Example                       | Description                                                       |
+|------------|-----------------------------------------------|-------------------------------|-------------------------------------------------------------------|
+| `.global`  | `.global SYMBOL[, SYMBOL...]`                 | `.global main`                | Mark symbol(s) as global (binding = global)                       |
+| `.extern`  | `.extern SYMBOL[, SYMBOL...]`                 | `.extern ext_fn`              | **Currently tokenized as `.global` and treated the same**         |
+| `.section` | `.section NAME`                               | `.section txt`                | Switch/create section                                             |
+| `.word`    | `.word VALUE \| SYMBOL \| SYMBOL±IMM, ...`    | `.word 10, var, label+4`      | Emit 32-bit words; symbols may create pool entries/relocations    |
+| `.skip`    | `.skip N`                                     | `.skip 16`                    | Reserve N zero bytes                                              |
+| `.ascii`   | `.ascii "string"`                             | `.ascii "Hello"`              | Emit raw bytes (no NUL)                                           |
+| `.equ`     | `.equ NAME, IMM` \| `.equ D, A − B` \| `.equ S, A + B` | `.equ SZ, 256`      | Define absolute symbols; deferred forms resolved at flush         |
+| `.type`    | `.type SYMBOL, FUNC|DATA|NOTYPE`              | `.type main, FUNC`            | Symbol type metadata                                              |
+| `.weak`    | `.weak SYMBOL[, SYMBOL...]`                   | `.weak optional_handler`      | Mark symbol(s) as weak                                            |
+| `.end`     | `.end`                                        | `.end`                        | End of source                                                     |
+
+> **Notes**:  
+> - `.word SYMBOL±IMM`: if `SYMBOL` is a known `.equ`, the immediate value is emitted; otherwise a pool entry + relocation is created.
+> - `.weak`: validated at flush — it must be either defined or referenced in the module.
+
+---
+
+### Relocations
+
+- Type: `R_ABS32`
+- Created for any pooled **symbol** (non-`.equ`) when its 32-bit word is emitted into a section.
+- Offset points at the pool word (not the instruction).
+- Addend is the parsed `± IMM` part.
+
+Example output:
+
+    .relocations
+    txt 64 R_ABS32 func 0
+
+---
+
+### Output File Format (textual)
+
+    .sections
+    .txt
+    00000000 00000000 00000000 00000000
+    ...
+
+    .symbols
+    main defined strong FUNC txt 0 0
+    var  local   strong NOTYPE data 4 0
+    SIZE defined strong NOTYPE ABS 256 0
+    ...
+
+    .relocations
+    txt 64 R_ABS32 func 0
+
+---
+
+## Example
+
+    .section txt
+    .global main
+    .type main, FUNC
+
+    main:
+        ld  $msg, %r1
+        call puts
+        halt
+
+    .section data
+    msg:
+        .ascii "Hello"
+        .word 0
+
+Assembling:
+
+    ./assembler -o hello.o hello.s
+
+You’ll see `.sections` with the encoded instructions and data, `.symbols` with `main`, `msg`, etc., and `.relocations` with a record for `puts`.
 
 ---
 <br>
